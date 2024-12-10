@@ -28,9 +28,14 @@
                     result.innerHTML = "Please enter a positive integer.";
                     numDigits.innerHTML = "";
                 } else {
+                    const startTime = performance.now();
                     const fibResult = fibonacci(parseInt(n));
+                    const endTime = performance.now();
+                    const duration = (endTime - startTime).toFixed(2);
+                    
                     result.innerHTML = fibResult;
                     numDigits.innerHTML = `The ${n}${getOrdinalSuffix(n)} Fibonacci number has ${fibResult.toString().length} digit${fibResult.toString().length > 1 ? 's' : ''}.`;
+                    numDigits.innerHTML += `<br>Calculation took ${duration} milliseconds.`;
                 }
                 button.disabled = false;
             }, 0);
