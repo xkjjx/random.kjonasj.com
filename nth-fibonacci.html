@@ -14,18 +14,42 @@
         window.calculateFibonacci = async function() {
             const button = document.getElementById("calculate-btn");
             const result = document.getElementById("result");
+            const numDigits = document.getElementById("num-digits");
             
             // Disable button and show loading state
             button.disabled = true;
             result.innerHTML = "Calculating...";
+            numDigits.innerHTML = "";
             
             // Use setTimeout to allow UI to update before heavy calculation
             setTimeout(() => {
                 const n = document.getElementById("n").value;
-                const fibResult = fibonacci(parseInt(n));
-                result.innerHTML = fibResult;
+                if (n < 0) {
+                    result.innerHTML = "Please enter a positive integer.";
+                    numDigits.innerHTML = "";
+                } else {
+                    const fibResult = fibonacci(parseInt(n));
+                    result.innerHTML = fibResult;
+                    numDigits.innerHTML = `The ${n}${getOrdinalSuffix(n)} Fibonacci number has ${fibResult.toString().length} digit${fibResult.toString().length > 1 ? 's' : ''}.`;
+                }
                 button.disabled = false;
             }, 0);
+        }
+    }
+
+    function getOrdinalSuffix(n) {
+        const lastDigit = n % 10;
+        const lastTwoDigits = n % 100;
+        
+        if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+            return 'th';
+        }
+        
+        switch (lastDigit) {
+            case 1: return 'st';
+            case 2: return 'nd';
+            case 3: return 'rd';
+            default: return 'th';
         }
     }
 
@@ -35,10 +59,10 @@
 <body>
     <h1>Nth Fibonacci</h1>
     <p> This implementation uses WebAssembly instead of JavaScript to speed up the calculation.</p>
-    <p> The calculation is done in the background, so the page will not freeze.</p>
     <p> See the source code for the WebAssembly section <a href="https://github.com/xkjjx/fibonacci-wasm">here</a> for more details.</p>
     <input type="number" id="n" placeholder="Enter a number">
     <button id="calculate-btn" onclick="calculateFibonacci()">Calculate</button>
+    <p id="num-digits"></p>
     <p id="result" style="word-wrap: break-word;"></p>
     <p style="color:red">WARNING: Large numbers may slow/crash the page.</p>
 </body>
