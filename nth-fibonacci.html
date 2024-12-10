@@ -1,0 +1,35 @@
+<head>
+    <title>Nth Fibonacci</title>
+    <style>
+        * {
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<script>
+    function fibonacci() {
+        let n = document.getElementById("n").value;
+        let a = BigInt(0);
+        let b = BigInt(1);
+        for (let i = 0; i < n; i++) {
+            if (i % 2 == 0) {
+                a = a + b;
+            } else {
+                b = a + b;
+            }
+        }
+        if (n % 2 == 0) {
+            document.getElementById("result").innerHTML = a.toString();
+        } else {
+            document.getElementById("result").innerHTML = b.toString();
+        }
+    }
+</script>
+
+<body>
+    <h1>Nth Fibonacci</h1>
+    <input type="number" id="n" placeholder="Enter a number">
+    <button onclick="fibonacci()">Calculate</button>
+    <p id="result" style="word-wrap: break-word;"></p>
+    <p style="color:red">WARNING:Large numbers may slow/crash the page.</p>
+</body>
