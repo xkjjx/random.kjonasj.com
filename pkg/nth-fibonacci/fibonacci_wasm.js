@@ -19,19 +19,11 @@ function getStringFromWasm0(ptr, len) {
 }
 /**
  * @param {number} n
- * @returns {string}
+ * @returns {bigint}
  */
 export function fibonacci(n) {
-    let deferred1_0;
-    let deferred1_1;
-    try {
-        const ret = wasm.fibonacci(n);
-        deferred1_0 = ret[0];
-        deferred1_1 = ret[1];
-        return getStringFromWasm0(ret[0], ret[1]);
-    } finally {
-        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
-    }
+    const ret = wasm.fibonacci(n);
+    return ret;
 }
 
 async function __wbg_load(module, imports) {
@@ -68,6 +60,14 @@ async function __wbg_load(module, imports) {
 function __wbg_get_imports() {
     const imports = {};
     imports.wbg = {};
+    imports.wbg.__wbg_BigInt_83b60d3772ed53fe = function(arg0) {
+        const ret = BigInt(arg0);
+        return ret;
+    };
+    imports.wbg.__wbindgen_add = function(arg0, arg1) {
+        const ret = arg0 + arg1;
+        return ret;
+    };
     imports.wbg.__wbindgen_init_externref_table = function() {
         const table = wasm.__wbindgen_export_0;
         const offset = table.grow(4);
@@ -77,6 +77,13 @@ function __wbg_get_imports() {
         table.set(offset + 2, true);
         table.set(offset + 3, false);
         ;
+    };
+    imports.wbg.__wbindgen_number_new = function(arg0) {
+        const ret = arg0;
+        return ret;
+    };
+    imports.wbg.__wbindgen_throw = function(arg0, arg1) {
+        throw new Error(getStringFromWasm0(arg0, arg1));
     };
 
     return imports;

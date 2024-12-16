@@ -29,7 +29,12 @@
                     numDigits.innerHTML = "";
                 } else {
                     const startTime = performance.now();
-                    const fibResult = fibonacci(parseInt(n));
+                    let fibResult;
+                    if (document.getElementById("js").checked) {
+                        fibResult = calculateFibonacciJS(parseInt(n));
+                    } else {
+                        fibResult = fibonacci(parseInt(n));
+                    }
                     const endTime = performance.now();
                     const duration = (endTime - startTime).toFixed(2);
                     
@@ -58,13 +63,45 @@
         }
     }
 
+    function calculateFibonacciJS(n) {
+        let a = BigInt(0), b = BigInt(1), c;
+        for (let i = 2; i <= n; i++) {
+            c = a + b;
+            a = b;
+            b = c;
+        }
+        return n === 0 ? a : b;
+    }
+
     initWasm();
 </script>
 
 <body>
     <h1>Nth Fibonacci</h1>
-    <p> This implementation uses WebAssembly instead of JavaScript to speed up the calculation.</p>
-    <p> See the source code for the WebAssembly section <a href="https://github.com/xkjjx/fibonacci-wasm">here</a> for more details.</p>
+    <p> 
+        This project researches the difference between JavaScript and WebAssembly implementations.
+        Initially, I was trying to use WebAssembly to speed up the calculation of the Fibonacci sequence.
+        However, the first WebAssembly implementation was slower than the JavaScript implementation.
+        The first WebAssembly implementation took an integer input and returned a string output.
+        I suspected the string conversion was slowing the code. Initially, I didn't have a JS implementation to compare against,
+        but when I implemented JS version and compared the two, I found that the JS version was faster by a factor of 3.
+        I improved the WebAssembly implementation to return a JS BigInt and the performance improved, however, it is still
+        on par (and very slightly slower) with the JS version. This is likely because calculating the Nth Fibonacci number
+        is a very simple operation that the JS engine can easily optimize for.
+    </p>
+    <p> 
+        See the source code for the WebAssembly section <a href="https://github.com/xkjjx/fibonacci-wasm">here</a> for more details
+        (<a href="https://github.com/xkjjx/fibonacci-wasm/tree/b3c2db6efc1697858ca5d29c0e8d6bf423f5a144">here</a> is the original implementation that outputted a string).
+    </p>
+    <form>
+        <p>Choose to use JavaScript or WebAssembly:</p>
+        <label>
+            <input type="radio" name="js-wasm" id="wasm" checked> WebAssembly
+        </label>
+        <label>
+            <input type="radio" name="js-wasm" id="js"> JavaScript
+        </label>
+    </form>
     <input type="number" id="n" placeholder="Enter a number">
     <button id="calculate-btn" onclick="calculateFibonacci()">Calculate</button>
     <p id="num-digits"></p>
