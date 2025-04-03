@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Segment Tree Visualizer</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    #controls, #array-setup { margin: 20px; text-align: center; }
+    #tree-container {
+      position: relative;
+      width: 1000px;
+      height: 600px;
+      border: 1px solid #ccc;
+      margin: 0 auto;
+      overflow: hidden;
+      background: #fff;
+    }
+    .node {
+      position: absolute;
+      width: 60px;
+      height: 40px;
+      border: 1px solid #333;
+      border-radius: 4px;
+      text-align: center;
+      line-height: 1.2;
+      font-size: 12px;
+      background-color: #f9f9f9;
+      transition: background-color 0.5s ease;
+      padding: 2px;
+      box-sizing: border-box;
+    }
+    .node.update { background-color: #ffecb3; }
+    .node.highlight { background-color: #b3e5fc; }
+    #tree-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+    /* Base array visualization */
+    #base-array {
+      display: inline-block;
+      margin: 10px;
+    }
+    .array-cell {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      margin: 2px;
+      border: 1px solid #333;
+      line-height: 40px;
+      text-align: center;
+      background-color: #e0f7fa;
+      transition: background-color 0.5s ease;
+    }
+    .array-cell.update {
+      background-color: #ffecb3;
+    }
+    /* Segment tree array visualization */
+    #segment-tree-array {
+      display: inline-block;
+      margin: 10px;
+    }
+    .tree-cell {
+      display: inline-block;
+      width: 60px;
+      height: 40px;
+      margin: 2px;
+      border: 1px solid #333;
+      line-height: 40px;
+      text-align: center;
+      background-color: #f1f8e9;
+      transition: background-color 0.5s ease;
+      font-size: 10px;
+    }
+    .tree-cell.highlight {
+      background-color: #b3e5fc;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center;">Segment Tree Visualizer</h1>
+  <h2> Summary </h2>
+  <p>
+    A segment tree is a data structure designed for efficient range queries and updates on an array.
+    It works by constructing a binary tree where each node represents a segment (range) of the original array.
+    Leaf nodes correspond to individual array elements,
+    while internal nodes store aggregated information (like sums, minimums, or maximums) about their children's segments.
+    This hierarchical structure allows for logarithmic time complexity (O(log n)) for both query and update operations,
+    as each operation only needs to traverse or modify a small portion of the tree rather than the entire array.
+    When querying a range,the algorithm can often use larger segments stored in higher-level nodes rather than examining every element,
+    and when updating a value, only the nodes on the path from the leaf to the root need to be recalculated.
+  </p>
+  <h2> Visualizer </h2>
+  <!-- Array setup control -->
+  <div id="array-setup">
+    <label>Array Size:
+      <input type="number" id="array-size" min="1" max="100" value="8">
+    </label>
+    <button id="generate-array-btn">Generate New Array</button>
+  </div>
+  
+  <!-- Update and query controls -->
+  <div id="controls">
+    <div>
+      <label>Update: Index:
+        <input type="number" id="update-index" min="0">
+      </label>
+      <label>Value:
+        <input type="number" id="update-value">
+      </label>
+      <button id="update-btn">Update</button>
+    </div>
+    <div style="margin-top:10px;">
+      <label>Query: From:
+        <input type="number" id="query-from" min="0">
+      </label>
+      <label>To:
+        <input type="number" id="query-to">
+      </label>
+      <button id="query-btn">Query</button>
+      <span id="query-result"></span>
+    </div>
+  </div>
+  
+  <!-- Visualizations for arrays -->
+  <div id="array-visualization" style="text-align: center; margin: 20px;">
+    <h3>Base Array</h3>
+    <div id="base-array"></div>
+  </div>
+  
+  <div id="segment-tree-array-visualization" style="text-align: center; margin: 20px;">
+    <h3>Segment Tree Array Representation</h3>
+    <div id="segment-tree-array"></div>
+  </div>
+  
+  <!-- Container for tree visualization -->
+  <div id="tree-container">
+    <svg id="tree-svg" width="1000" height="600"></svg>
+  </div>
+  
+  <script>
+    // Global configuration and variables
+    const container = document.getElementById('tree-container');
+    const svg = document.getElementById('tree-svg');
+    const nodeWidth = 60;
+    const nodeHeight = 40;
+    const verticalSpacing = 80;
+    const horizontalSpacing = 80;
+    
+    // Operation state tracking to prevent concurrent animations
+    let isOperationInProgress = false;
+    
+    // Global array and its visualization reference
+    let arr = [5, 8, 6, 3, 2, 7, 4, 6];
+    let baseArrayCells = [];
+    let segmentTreeArray = [];
+    
+    // Create a node object for the tree
+    function createNode(l, r, value) {
+      return { l: l, r: r, value: value, leftChild: null, rightChild: null, x: 0, y: 0, dom: null };
+    }
+    
+    // Build the segment tree recursively
+    function buildTree(l, r) {
+      let node = createNode(l, r, 0);
+      if(l === r) {
+        node.value = arr[l];
+        return node;
+      }
+      let mid = Math.floor((l + r) / 2);
+      node.leftChild = buildTree(l, mid);
+      node.rightChild = buildTree(mid + 1, r);
+      node.value = node.leftChild.value + node.rightChild.value;
+      return node;
+    }
+    
+    let root = null;
+    
+    // Layout the tree by assigning x and y positions - optimized to avoid multiple passes
+    function layoutTree(node, level, leftmostLeafIndex) {
+      if (!node) return { x: 0, leafCount: 0 };
+      
+      node.y = level * verticalSpacing + 20;
+      
+      if (node.l === node.r) { // Leaf node
+        node.x = (leftmostLeafIndex + 0.5) * horizontalSpacing;
+        return { x: node.x, leafCount: 1 };
+      }
+      
+      // Process left subtree
+      const left = layoutTree(node.leftChild, level + 1, leftmostLeafIndex);
+      // Process right subtree with updated leftmost index
+      const right = layoutTree(node.rightChild, level + 1, leftmostLeafIndex + left.leafCount);
+      
+      // Position this node at the center of its children
+      node.x = (left.x + right.x) / 2;
+      
+      return { x: node.x, leafCount: left.leafCount + right.leafCount };
+    }
+    
+    // Render each node as a div element in the container
+    function renderTree(node) {
+      if (!node) return;
+      
+      let div = document.createElement('div');
+      div.className = 'node';
+      div.style.left = (node.x - nodeWidth / 2) + 'px';
+      div.style.top = node.y + 'px';
+      div.innerHTML = node.l + '-' + node.r + '<br>' + node.value;
+      container.appendChild(div);
+      node.dom = div;
+      
+      if(node.leftChild) renderTree(node.leftChild);
+      if(node.rightChild) renderTree(node.rightChild);
+    }
+    
+    // Draw connecting lines using SVG
+    function drawLines(node) {
+      if (!node) return;
+      
+      if(node.leftChild) {
+        drawLine(node, node.leftChild);
+        drawLines(node.leftChild);
+      }
+      if(node.rightChild) {
+        drawLine(node, node.rightChild);
+        drawLines(node.rightChild);
+      }
+    }
+    
+    function drawLine(parent, child) {
+      if (!parent || !child) return;
+      
+      let x1 = parent.x;
+      let y1 = parent.y + nodeHeight;
+      let x2 = child.x;
+      let y2 = child.y;
+      let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", x1);
+      line.setAttribute("y1", y1);
+      line.setAttribute("x2", x2);
+      line.setAttribute("y2", y2);
+      line.setAttribute("stroke", "#555");
+      line.setAttribute("stroke-width", "2");
+      svg.appendChild(line);
+    }
+    
+    // Update a node's display text
+    function updateNodeDOM(node) {
+      if(node && node.dom) {
+        node.dom.innerHTML = node.l + '-' + node.r + '<br>' + node.value;
+      }
+    }
+    
+    // Animate node updates by temporarily applying a CSS class
+    function animateNode(node) {
+      if (!node || !node.dom) return Promise.resolve();
+      
+      return new Promise(resolve => {
+        node.dom.classList.add('update');
+        setTimeout(() => {
+          node.dom.classList.remove('update');
+          resolve();
+        }, 600);
+      });
+    }
+    
+    // Recursively update the tree for a given index
+    async function updateTreeValue(node, index, newVal) {
+      if (!node) return;
+      
+      if(node.l === node.r && node.l === index) {
+        node.value = newVal;
+        updateNodeDOM(node);
+        await animateNode(node);
+        return;
+      }
+      
+      const mid = Math.floor((node.l + node.r) / 2);
+      if(index <= mid) {
+        await updateTreeValue(node.leftChild, index, newVal);
+      } else {
+        await updateTreeValue(node.rightChild, index, newVal);
+      }
+      
+      // Recalculate the node value based on children
+      if (node.leftChild && node.rightChild) {
+        node.value = node.leftChild.value + node.rightChild.value;
+      }
+      
+      updateNodeDOM(node);
+      await animateNode(node);
+    }
+    
+    // Recursively query the tree and collect nodes that contribute to the sum
+    function queryTree(node, ql, qr, nodesHighlighted) {
+      if (!node || ql > qr) return 0;
+      
+      if(node.l >= ql && node.r <= qr) {
+        nodesHighlighted.push(node);
+        return node.value;
+      }
+      
+      if(node.r < ql || node.l > qr) {
+        return 0;
+      }
+      
+      let leftSum = queryTree(node.leftChild, ql, qr, nodesHighlighted);
+      let rightSum = queryTree(node.rightChild, ql, qr, nodesHighlighted);
+      return leftSum + rightSum;
+    }
+    
+    // Sequentially highlight nodes with a brief delay between each
+    async function highlightNodes(nodes) {
+      for (let i = 0; i < nodes.length; i++) {
+        if (nodes[i] && nodes[i].dom) {
+          nodes[i].dom.classList.add('highlight');
+          await new Promise(resolve => {
+            setTimeout(() => {
+              nodes[i].dom.classList.remove('highlight');
+              resolve();
+            }, 600);
+          });
+        }
+      }
+    }
+    
+    // Flatten the tree into an array for segment tree array visualization
+    // Uses a more appropriate array representation for segment trees (level order)
+    function flattenTree(root) {
+      if (!root) return [];
+      
+      let result = [];
+      let queue = [root];
+      
+      while(queue.length > 0) {
+        let levelSize = queue.length;
+        
+        for (let i = 0; i < levelSize; i++) {
+          let node = queue.shift();
+          result.push(node);
+          
+          if(node.leftChild) queue.push(node.leftChild);
+          if(node.rightChild) queue.push(node.rightChild);
+        }
+      }
+      
+      return result;
+    }
+    
+    // Render the base array visualization
+    function renderBaseArray() {
+      baseArrayCells = [];
+      const baseContainer = document.getElementById('base-array');
+      baseContainer.innerHTML = "";
+      
+      for(let i = 0; i < arr.length; i++) {
+        let cell = document.createElement('div');
+        cell.className = 'array-cell';
+        cell.innerText = arr[i];
+        baseContainer.appendChild(cell);
+        baseArrayCells.push(cell);
+      }
+    }
+    
+    // Render the segment tree array representation
+    function renderSegmentTreeArray() {
+      segmentTreeArray = [];
+      const treeArrayContainer = document.getElementById('segment-tree-array');
+      treeArrayContainer.innerHTML = "";
+      
+      if (!root) return;
+      
+      let nodes = flattenTree(root);
+      nodes.forEach((node) => {
+        let cell = document.createElement('div');
+        cell.className = 'tree-cell';
+        cell.innerHTML = node.l + "-" + node.r + "<br>" + node.value;
+        treeArrayContainer.appendChild(cell);
+        segmentTreeArray.push(cell);
+      });
+    }
+    
+    // Clear previous visualizations (tree, base array, and segment tree array)
+    function resetVisualizations() {
+      // Clear tree container nodes
+      const nodeElements = container.querySelectorAll('.node');
+      nodeElements.forEach(node => node.remove());
+      
+      // Clear SVG lines properly
+      while (svg.firstChild) {
+        svg.removeChild(svg.firstChild);
+      }
+      
+      // Clear base array and segment tree array containers
+      document.getElementById('base-array').innerHTML = "";
+      document.getElementById('segment-tree-array').innerHTML = "";
+      
+      // Reset global references
+      baseArrayCells = [];
+      segmentTreeArray = [];
+    }
+    
+    // Initialize the visualizer
+    function init() {
+      // Build the segment tree
+      root = buildTree(0, arr.length - 1);
+      
+      // Layout, render, and draw the tree
+      layoutTree(root, 0, 0);
+      renderTree(root);
+      drawLines(root);
+      
+      // Render the array visualizations
+      renderBaseArray();
+      renderSegmentTreeArray();
+    }
+    
+    // Initialize on page load
+    init();
+    
+    // Setup event listener for generating a new array
+    document.getElementById('generate-array-btn').addEventListener('click', () => {
+      if (isOperationInProgress) return;
+      
+      let size = parseInt(document.getElementById('array-size').value);
+      if(isNaN(size) || size <= 0) {
+        alert('Please enter a valid size.');
+        return;
+      }
+      
+      // Generate a new array with random values between 1 and 10
+      arr = Array.from({ length: size }, () => Math.floor(Math.random() * 10) + 1);
+      
+      // Reset and reinitialize visualizations
+      resetVisualizations();
+      init();
+      
+      // Clear query result
+      document.getElementById('query-result').innerText = "";
+    });
+    
+    // Setup event listener for the update button
+    document.getElementById('update-btn').addEventListener('click', async () => {
+      if (isOperationInProgress || !root) return;
+      
+      isOperationInProgress = true;
+      
+      let index = parseInt(document.getElementById('update-index').value);
+      let value = parseInt(document.getElementById('update-value').value);
+      
+      if(isNaN(index) || isNaN(value) || index < 0 || index >= arr.length) {
+        alert('Invalid index or value. Index must be between 0 and ' + (arr.length - 1));
+        isOperationInProgress = false;
+        return;
+      }
+      
+      // Update the underlying base array
+      arr[index] = value;
+      
+      // Update the base array visualization
+      if (baseArrayCells[index]) {
+        baseArrayCells[index].innerText = value;
+        baseArrayCells[index].classList.add('update');
+        setTimeout(() => {
+          baseArrayCells[index].classList.remove('update');
+        }, 600);
+      }
+      
+      // Update the segment tree with animations
+      await updateTreeValue(root, index, value);
+      
+      // After the animations, update the segment tree array representation
+      renderSegmentTreeArray();
+      
+      isOperationInProgress = false;
+    });
+    
+    // Setup event listener for the query button
+    document.getElementById('query-btn').addEventListener('click', async () => {
+      if (isOperationInProgress || !root) return;
+      
+      isOperationInProgress = true;
+      
+      let ql = parseInt(document.getElementById('query-from').value);
+      let qr = parseInt(document.getElementById('query-to').value);
+      
+      if(isNaN(ql) || isNaN(qr) || ql < 0 || qr >= arr.length || ql > qr) {
+        alert('Invalid query range. Range must be between 0 and ' + (arr.length - 1));
+        isOperationInProgress = false;
+        return;
+      }
+      
+      let nodesHighlighted = [];
+      let sum = queryTree(root, ql, qr, nodesHighlighted);
+      
+      await highlightNodes(nodesHighlighted);
+      document.getElementById('query-result').innerText = " Sum: " + sum;
+      
+      isOperationInProgress = false;
+    });
+  </script>
+</body>
+<footer>
+    <p><a href="https://www.github.com/xkjjx"> Github </a> | <a href="https://www.linkedin.com/in/kjonasj"> LinkedIn</a> | <a href="https://www.twitter.com/kjonasj"> Twitter </a></p>
+</footer>
+</html>
