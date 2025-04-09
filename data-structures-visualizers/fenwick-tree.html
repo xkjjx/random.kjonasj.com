@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-7647DWQC1M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-7647DWQC1M');
+  </script>
+  <meta charset="UTF-8">
+  <title>Fenwick Tree Visualizer</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    #controls, #array-setup { margin: 20px; text-align: center; }
+    .array-container {
+      margin: 20px auto;
+      text-align: center;
+    }
+    .cell {
+      display: inline-block;
+      width: 60px;
+      height: 40px;
+      margin: 2px;
+      border: 1px solid #333;
+      border-radius: 4px;
+      line-height: 40px;
+      text-align: center;
+      background-color: #f9f9f9;
+      transition: background-color 0.5s ease;
+      padding: 2px;
+      box-sizing: border-box;
+    }
+    .cell.update {
+      background-color: #ffecb3;
+    }
+    .cell.query {
+      background-color: #b3e5fc;
+    }
+    #base-array {
+      display: inline-block;
+      margin: 10px;
+    }
+    #fenwick-array {
+      display: inline-block;
+      margin: 10px;
+    }
+    @media screen and (min-width: 768px) {
+      body {
+        margin-left: 15%;
+        margin-right: 15%;
+      }
+    }
+    @media screen and (max-width: 768px) {
+      body {
+        margin-left: 5%;
+        margin-right: 5%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center;">Fenwick Tree (Binary Indexed Tree) Visualizer</h1>
+
+  <h2> Summary </h2>
+  <p>
+    The original array holds the actual values at each index. The Fenwick Tree (also known as a Binary Indexed Tree)
+    provides a way to efficiently compute prefix sums and perform updates in logarithmic time.
+  </p>
+  <p>
+    Each entry <code>fenwick[i]</code> stores the sum of a specific range of elements from the original array.
+    The range covered by each <code>fenwick[i]</code> depends on the lowest set bit (LSB) of <code>i</code>.
+    Specifically, <code>fenwick[i]</code> stores the sum of <code>arr[i - 2^r + 1]</code> to <code>arr[i]</code>,
+    where <code>2^r</code> is the value of the lowest set bit of <code>i</code>.
+  </p>
+  <p>
+    When querying the prefix sum up to a given index, the algorithm moves leftward by subtracting the LSB from the index
+    and summing all relevant <code>fenwick[i]</code> entries along the way. Updates propagate forward by adding the delta
+    to all indices that include the updated position in their covered range.
+  </p>
+
+  <h2> Visualizer </h2>
+  <div id="array-setup">
+    <label>Array Size:
+      <input type="number" id="array-size" min="1" max="100" value="8">
+    </label>
+    <button onclick="generateArray()">Generate New Array</button>
+  </div>
+
+  <div id="controls">
+    <div>
+      <label>Update: Index
+        <input type="number" id="update-index" min="1">
+      </label>
+      <label>Value
+        <input type="number" id="update-value">
+      </label>
+      <button onclick="handleUpdate()">Update</button>
+    </div>
+    <div style="margin-top:10px">
+      <label>Query: Prefix Sum up to Index
+        <input type="number" id="query-index" min="1">
+      </label>
+      <button onclick="handleQuery()">Query</button>
+      <span id="query-result"></span>
+    </div>
+  </div>
+
+  <div id="array-visualization" style="text-align: center; margin: 20px;">
+    <h3>Original Array</h3>
+    <div id="base-array" class="array-container"></div>
+  </div>
+
+  <div id="fenwick-array-visualization" style="text-align: center; margin: 20px;">
+    <h3>Fenwick Tree Array</h3>
+    <div id="fenwick-array" class="array-container"></div>
+  </div>
+
+  <script>
+    let arr = [], fenwick = [];
+    let baseCells = [], treeCells = [];
+
+    function lsb(index) {
+      return index & -index;
+    }
+
+    function generateArray() {
+      const size = parseInt(document.getElementById('array-size').value);
+      arr = Array.from({ length: size + 1 }, () => 0); // 1-based index
+      for (let i = 1; i <= size; i++) {
+        arr[i] = Math.floor(Math.random() * 10) + 1;
+      }
+      buildFenwick();
+      renderArrays();
+      document.getElementById('query-result').innerText = "";
+    }
+
+    function buildFenwick() {
+      const n = arr.length;
+      fenwick = Array(n).fill(0);
+      for (let i = 1; i < n; i++) {
+        updateFenwick(i, arr[i]);
+      }
+    }
+
+    function updateFenwick(index, delta) {
+      const n = fenwick.length;
+      while (index < n) {
+        fenwick[index] += delta;
+        index += lsb(index);
+      }
+    }
+
+    function queryFenwick(index) {
+      let sum = 0;
+      while (index > 0) {
+        sum += fenwick[index];
+        index -= lsb(index);
+      }
+      return sum;
+    }
+
+    function renderArrays() {
+      const baseContainer = document.getElementById('base-array');
+      const fenwickContainer = document.getElementById('fenwick-array');
+      baseContainer.innerHTML = "";
+      fenwickContainer.innerHTML = "";
+      baseCells = [];
+      treeCells = [];
+
+      for (let i = 1; i < arr.length; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.innerText = arr[i];
+        baseContainer.appendChild(cell);
+        baseCells.push(cell);
+
+        const treeCell = document.createElement('div');
+        treeCell.className = 'cell';
+        treeCell.innerText = fenwick[i];
+        fenwickContainer.appendChild(treeCell);
+        treeCells.push(treeCell);
+      }
+    }
+
+    async function handleUpdate() {
+      const idx = parseInt(document.getElementById('update-index').value);
+      const newVal = parseInt(document.getElementById('update-value').value);
+      if (isNaN(idx) || isNaN(newVal) || idx < 1 || idx >= arr.length) {
+        alert('Invalid index or value.');
+        return;
+      }
+      const delta = newVal - arr[idx];
+      arr[idx] = newVal;
+      buildFenwick();
+      renderArrays();
+      baseCells[idx - 1].classList.add('update');
+      treeCells.forEach(cell => cell.classList.add('update'));
+      setTimeout(() => {
+        baseCells[idx - 1].classList.remove('update');
+        treeCells.forEach(cell => cell.classList.remove('update'));
+      }, 600);
+    }
+
+    async function handleQuery() {
+      const idx = parseInt(document.getElementById('query-index').value);
+      if (isNaN(idx) || idx < 1 || idx >= arr.length) {
+        alert('Invalid query index.');
+        return;
+      }
+      let sum = 0;
+      let path = [];
+      let i = idx;
+      while (i > 0) {
+        path.push(i);
+        sum += fenwick[i];
+        i -= lsb(i);
+      }
+      document.getElementById('query-result').innerText = 'Sum: ' + sum;
+      for (const i of path) {
+        treeCells[i - 1].classList.add('query');
+      }
+      setTimeout(() => {
+        for (const i of path) {
+          treeCells[i - 1].classList.remove('query');
+        }
+      }, 600);
+    }
+
+    window.onload = generateArray;
+  </script>
+</body>
+<footer>
+    <p><a href="https://www.github.com/xkjjx"> Github </a> | <a href="https://www.linkedin.com/in/kjonasj"> LinkedIn</a> | <a href="https://www.twitter.com/kjonasj"> Twitter </a></p>
+</footer>
+</html>
