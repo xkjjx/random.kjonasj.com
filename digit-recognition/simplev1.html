@@ -82,6 +82,7 @@
             text-align: right;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 </head>
 <body>
     <h1>Digit Recognition</h1>
@@ -106,26 +107,10 @@
 
     <script>
         // ============================================================
-        // Neural Network Forward Pass (Pure JS)
+        // ONNX Runtime Inference
         // ============================================================
         
-        let weights = null;
-
-        function linear(input, weight, bias) {
-            const output = new Array(bias.length);
-            for (let i = 0; i < bias.length; i++) {
-                let sum = bias[i];
-                for (let j = 0; j < input.length; j++) {
-                    sum += weight[i][j] * input[j];
-                }
-                output[i] = sum;
-            }
-            return output;
-        }
-
-        function relu(x) {
-            return x.map(v => Math.max(0, v));
-        }
+        let session = null;
 
         function softmax(x) {
             const maxVal = Math.max(...x);
@@ -134,13 +119,15 @@
             return exps.map(v => v / sum);
         }
 
-        function forward(input) {
-            let x = linear(input, weights['1.weight'], weights['1.bias']);
-            x = relu(x);
-            x = linear(x, weights['3.weight'], weights['3.bias']);
-            x = relu(x);
-            x = linear(x, weights['5.weight'], weights['5.bias']);
-            return x;
+        async function runInference(inputData) {
+            // Create tensor with shape [1, 28, 28] (batch, height, width)
+            const tensor = new ort.Tensor('float32', inputData, [1, 28, 28]);
+            
+            // Run inference
+            const results = await session.run({ image: tensor });
+            
+            // Get output logits
+            return Array.from(results.logits.data);
         }
 
         // ============================================================
@@ -230,7 +217,8 @@
             const imageData = ctx.getImageData(0, 0, 28, 28);
             const pixels = imageData.data;
             
-            const input = new Array(784);
+            // Convert to Float32Array for ONNX (784 values, normalized 0-1)
+            const input = new Float32Array(784);
             for (let i = 0; i < 784; i++) {
                 input[i] = pixels[i * 4] / 255.0;
             }
@@ -263,14 +251,14 @@
             `).join('');
         }
 
-        function recognize() {
-            if (!weights) {
-                alert('Model weights not loaded yet!');
+        async function recognize() {
+            if (!session) {
+                alert('Model not loaded yet!');
                 return;
             }
 
             const input = getImageData();
-            const logits = forward(input);
+            const logits = await runInference(input);
             const probs = softmax(logits);
             
             let maxIdx = 0;
@@ -298,15 +286,16 @@
 
         updateProbabilityBars([]);
 
-        fetch('model.json')
-            .then(response => {
-                if (!response.ok) throw new Error('Failed to load weights');
-                return response.json();
-            })
-            .then(data => {
-                weights = data;
+        // Load ONNX model
+        ort.InferenceSession.create('model.onnx')
+            .then(s => {
+                session = s;
                 document.getElementById('recognizeBtn').disabled = false;
             })
+            .catch(err => {
+                console.error('Failed to load model:', err);
+                alert('Failed to load model. See console for details.');
+            });
     </script>
     <h2>Background</h2>
     <p>
