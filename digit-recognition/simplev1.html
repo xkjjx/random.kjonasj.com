@@ -287,7 +287,7 @@
         updateProbabilityBars([]);
 
         // Load ONNX model
-        ort.InferenceSession.create('model.onnx')
+        ort.InferenceSession.create('assets/simplev1/model.onnx')
             .then(s => {
                 session = s;
                 document.getElementById('recognizeBtn').disabled = false;
@@ -297,6 +297,7 @@
                 alert('Failed to load model. See console for details.');
             });
     </script>
+    <p>Visualizations and analysis available <a href="assets/simplev1/visualizations/visualizations/visualization.html">here</a>.</p>
     <h2>Background</h2>
     <p>
         I trained a neural network using very naive methods on the free <a href="https://www.kaggle.com/datasets/hojjatk/mnist-dataset?resource=download">MNIST dataset of labeled handwritten digits</a>

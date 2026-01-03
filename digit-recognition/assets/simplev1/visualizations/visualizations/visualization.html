@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Weight Analysis</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 1rem;
+            line-height: 1.6;
+        }
+        
+        h1 {
+            border-bottom: 2px solid #000;
+            padding-bottom: 0.5rem;
+        }
+        
+        h2 {
+            margin-top: 2.5rem;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 0.3rem;
+        }
+        
+        h3 {
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        
+        .section {
+            margin: 1.5rem 0;
+        }
+        
+        .architecture {
+            padding: 1rem;
+            border: 1px solid #ccc;
+            margin: 1rem 0;
+        }
+        
+        .arch-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .layer-box {
+            border: 1px solid #000;
+            padding: 0.5rem 1rem;
+            text-align: center;
+        }
+        
+        .layer-box .size {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        
+        .layer-box .name {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        
+        .arrow {
+            font-size: 1.5rem;
+        }
+        
+        .params {
+            text-align: center;
+            color: #666;
+            font-size: 0.875rem;
+        }
+        
+        .viz-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .viz-item {
+            border: 1px solid #ccc;
+            padding: 1rem;
+        }
+        
+        .viz-item h3 {
+            margin-top: 0;
+            font-size: 0.875rem;
+        }
+        
+        .viz-item img {
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        .viz-item img:hover {
+            opacity: 0.9;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .stats-box {
+            border: 1px solid #ccc;
+            padding: 1rem;
+        }
+        
+        .stats-box h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.875rem;
+        }
+        
+        .pair-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stat-row {
+            display: flex;
+            gap: 1rem;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.875rem;
+        }
+        
+        .stat-row .digit {
+            font-weight: bold;
+            width: 1rem;
+        }
+        
+        .note {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        
+        footer {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid #ccc;
+            color: #666;
+            font-size: 0.875rem;
+        }
+        
+        /* Lightbox */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+        
+        .lightbox.active {
+            display: flex;
+        }
+        
+        .lightbox img {
+            max-width: 95%;
+            max-height: 95%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Model Weight Analysis</h1>
+    <p>Visual and quantitative analysis of the digit recognition neural network.</p>
+    
+    <div class="architecture">
+        <div class="arch-diagram">
+            <div class="layer-box">
+                <div class="size">784</div>
+                <div class="name">Input (28×28)</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="layer-box">
+                <div class="size">128</div>
+                <div class="name">Hidden 1</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="layer-box">
+                <div class="size">128</div>
+                <div class="name">Hidden 2</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="layer-box">
+                <div class="size">10</div>
+                <div class="name">Output</div>
+            </div>
+        </div>
+        <div class="params">118,016 parameters</div>
+    </div>
+    
+    
+    <h2>Visualizations</h2>
+    
+    <div class="section">
+        <h3>Layer Overviews</h3>
+        <div class="viz-grid">
+            <div class="viz-item">
+                <h3>Layer 1: Feature Detectors (128 neurons)</h3>
+                <img src="01_layer1_overview.png" alt="Layer 1" onclick="openLightbox(this)">
+                <p class="note">Direct weights showing what input patterns each neuron detects. <a href="layer1_gallery.html">View all neurons &rarr;</a></p>
+            </div>
+            <div class="viz-item">
+                <h3>Layer 2: Composed Features (W2×W1)</h3>
+                <img src="02_layer2_overview.png" alt="Layer 2" onclick="openLightbox(this)">
+                <p class="note">Effective input patterns for layer 2 neurons. <a href="layer2_gallery.html">View all neurons &rarr;</a></p>
+            </div>
+            <div class="viz-item">
+                <h3>Layer 3: Class Templates (W3×W2×W1)</h3>
+                <img src="03_layer3_overview.png" alt="Layer 3" onclick="openLightbox(this)">
+                <p class="note">What each digit "looks like" to the network. <a href="layer3_gallery.html">View all templates &rarr;</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Data available at <a href="analysis.json">analysis.json</a> for programmatic access.</p>
+    </footer>
+    
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" alt="Enlarged">
+    </div>
+    
+    <script>
+        function openLightbox(img) {
+            document.getElementById('lightbox-img').src = img.src;
+            document.getElementById('lightbox').classList.add('active');
+        }
+        
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+    </script>
+</body>
+</html>

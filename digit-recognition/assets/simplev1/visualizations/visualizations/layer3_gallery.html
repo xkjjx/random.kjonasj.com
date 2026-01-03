@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layer 3 Neurons - Class Templates</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 1rem;
+            line-height: 1.6;
+        }
+        
+        h1 {
+            border-bottom: 2px solid #000;
+            padding-bottom: 0.5rem;
+        }
+        
+        .back-link {
+            margin-bottom: 1rem;
+        }
+        
+        .back-link a {
+            color: #666;
+        }
+        
+        .note {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        
+        .neuron-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .neuron-item {
+            text-align: center;
+        }
+        
+        .neuron-item .label {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .neuron-grid img {
+            width: 100%;
+            aspect-ratio: 1;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            transition: transform 0.1s, border-color 0.1s;
+        }
+        
+        .neuron-grid img:hover {
+            transform: scale(1.05);
+            border-color: #000;
+        }
+        
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+        
+        .lightbox.active {
+            display: flex;
+        }
+        
+        .lightbox img {
+            max-width: 95%;
+            max-height: 95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="back-link"><a href="visualization.html">&larr; Back to Overview</a></div>
+    
+    <h1>Layer 3: Class Templates</h1>
+    <p>10 output neurons representing what each digit "looks like" to the network (W3×W2×W1).</p>
+    <p class="note">These templates show the effective input pattern for each digit class. Red indicates positive weights, blue indicates negative weights. Click any template to enlarge.</p>
+    
+    <div class="neuron-grid">
+        <div class="neuron-item">
+            <div class="label">0</div>
+            <img src="layer3_classes/neuron_000.png" alt="Digit 0 Template" onclick="openLightbox(this)">
+        </div>
+        <div class="neuron-item">
+            <div class="label">1</div>
+            <img src="layer3_classes/neuron_001.png" alt="Digit 1 Template" onclick="openLightbox(this)">
+        </div>
+        <div class="neuron-item">
+            <div class="label">2</div>
+            <img src="layer3_classes/neuron_002.png" alt="Digit 2 Template" onclick="openLightbox(this)">
+        </div>
+        <div class="neuron-item">
+            <div class="label">3</div>
+            <img src="layer3_classes/neuron_003.png" alt="Digit 3 Template" onclick="openLightbox(this)">
+        </div>
+        <div class="neuron-item">
+            <div class="label">4</div>
+            <img src="layer3_classes/neuron_004.png" alt="Digit 4 Template" onclick="openLightbox(this)">
+        </div>
+        <div class="neuron-item">
+            <div class="label">5</div>
+            <img src="layer3_classes/neuron_005.png" alt="Digit 5 Template" onclick="openLightbox(this)">
+        </div>
+        <div class="neuron-item">
+            <div class="label">6</div>
+            <img src="layer3_classes/neuron_006.png" alt="Digit 6 Template" onclick="openLightbox(this)">
+        </div>
+        <div class="neuron-item">
+            <div class="label">7</div>
+            <img src="layer3_classes/neuron_007.png" alt="Digit 7 Template" onclick="openLightbox(this)">
+        </div>
+        <div class="neuron-item">
+            <div class="label">8</div>
+            <img src="layer3_classes/neuron_008.png" alt="Digit 8 Template" onclick="openLightbox(this)">
+        </div>
+        <div class="neuron-item">
+            <div class="label">9</div>
+            <img src="layer3_classes/neuron_009.png" alt="Digit 9 Template" onclick="openLightbox(this)">
+        </div>
+    </div>
+    
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" alt="Enlarged">
+    </div>
+    
+    <script>
+        function openLightbox(img) {
+            document.getElementById('lightbox-img').src = img.src;
+            document.getElementById('lightbox').classList.add('active');
+        }
+        
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+    </script>
+</body>
+</html>
+

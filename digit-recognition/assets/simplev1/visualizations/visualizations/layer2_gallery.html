@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layer 2 Neurons - Composed Features</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 1rem;
+            line-height: 1.6;
+        }
+        
+        h1 {
+            border-bottom: 2px solid #000;
+            padding-bottom: 0.5rem;
+        }
+        
+        .back-link {
+            margin-bottom: 1rem;
+        }
+        
+        .back-link a {
+            color: #666;
+        }
+        
+        .note {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        
+        .neuron-grid {
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            gap: 4px;
+            margin: 1rem 0;
+        }
+        
+        .neuron-grid img {
+            width: 100%;
+            aspect-ratio: 1;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            transition: transform 0.1s, border-color 0.1s;
+        }
+        
+        .neuron-grid img:hover {
+            transform: scale(1.1);
+            border-color: #000;
+            z-index: 1;
+            position: relative;
+        }
+        
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+        
+        .lightbox.active {
+            display: flex;
+        }
+        
+        .lightbox img {
+            max-width: 95%;
+            max-height: 95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="back-link"><a href="visualization.html">&larr; Back to Overview</a></div>
+    
+    <h1>Layer 2: Composed Features</h1>
+    <p>128 neurons showing effective input patterns (W2×W1). These represent higher-level feature combinations.</p>
+    <p class="note">Red indicates positive weights, blue indicates negative weights. Click any neuron to enlarge.</p>
+    
+    <div class="neuron-grid">
+        <img src="layer2/neuron_000.png" alt="Neuron 0" onclick="openLightbox(this)">
+        <img src="layer2/neuron_001.png" alt="Neuron 1" onclick="openLightbox(this)">
+        <img src="layer2/neuron_002.png" alt="Neuron 2" onclick="openLightbox(this)">
+        <img src="layer2/neuron_003.png" alt="Neuron 3" onclick="openLightbox(this)">
+        <img src="layer2/neuron_004.png" alt="Neuron 4" onclick="openLightbox(this)">
+        <img src="layer2/neuron_005.png" alt="Neuron 5" onclick="openLightbox(this)">
+        <img src="layer2/neuron_006.png" alt="Neuron 6" onclick="openLightbox(this)">
+        <img src="layer2/neuron_007.png" alt="Neuron 7" onclick="openLightbox(this)">
+        <img src="layer2/neuron_008.png" alt="Neuron 8" onclick="openLightbox(this)">
+        <img src="layer2/neuron_009.png" alt="Neuron 9" onclick="openLightbox(this)">
+        <img src="layer2/neuron_010.png" alt="Neuron 10" onclick="openLightbox(this)">
+        <img src="layer2/neuron_011.png" alt="Neuron 11" onclick="openLightbox(this)">
+        <img src="layer2/neuron_012.png" alt="Neuron 12" onclick="openLightbox(this)">
+        <img src="layer2/neuron_013.png" alt="Neuron 13" onclick="openLightbox(this)">
+        <img src="layer2/neuron_014.png" alt="Neuron 14" onclick="openLightbox(this)">
+        <img src="layer2/neuron_015.png" alt="Neuron 15" onclick="openLightbox(this)">
+        <img src="layer2/neuron_016.png" alt="Neuron 16" onclick="openLightbox(this)">
+        <img src="layer2/neuron_017.png" alt="Neuron 17" onclick="openLightbox(this)">
+        <img src="layer2/neuron_018.png" alt="Neuron 18" onclick="openLightbox(this)">
+        <img src="layer2/neuron_019.png" alt="Neuron 19" onclick="openLightbox(this)">
+        <img src="layer2/neuron_020.png" alt="Neuron 20" onclick="openLightbox(this)">
+        <img src="layer2/neuron_021.png" alt="Neuron 21" onclick="openLightbox(this)">
+        <img src="layer2/neuron_022.png" alt="Neuron 22" onclick="openLightbox(this)">
+        <img src="layer2/neuron_023.png" alt="Neuron 23" onclick="openLightbox(this)">
+        <img src="layer2/neuron_024.png" alt="Neuron 24" onclick="openLightbox(this)">
+        <img src="layer2/neuron_025.png" alt="Neuron 25" onclick="openLightbox(this)">
+        <img src="layer2/neuron_026.png" alt="Neuron 26" onclick="openLightbox(this)">
+        <img src="layer2/neuron_027.png" alt="Neuron 27" onclick="openLightbox(this)">
+        <img src="layer2/neuron_028.png" alt="Neuron 28" onclick="openLightbox(this)">
+        <img src="layer2/neuron_029.png" alt="Neuron 29" onclick="openLightbox(this)">
+        <img src="layer2/neuron_030.png" alt="Neuron 30" onclick="openLightbox(this)">
+        <img src="layer2/neuron_031.png" alt="Neuron 31" onclick="openLightbox(this)">
+        <img src="layer2/neuron_032.png" alt="Neuron 32" onclick="openLightbox(this)">
+        <img src="layer2/neuron_033.png" alt="Neuron 33" onclick="openLightbox(this)">
+        <img src="layer2/neuron_034.png" alt="Neuron 34" onclick="openLightbox(this)">
+        <img src="layer2/neuron_035.png" alt="Neuron 35" onclick="openLightbox(this)">
+        <img src="layer2/neuron_036.png" alt="Neuron 36" onclick="openLightbox(this)">
+        <img src="layer2/neuron_037.png" alt="Neuron 37" onclick="openLightbox(this)">
+        <img src="layer2/neuron_038.png" alt="Neuron 38" onclick="openLightbox(this)">
+        <img src="layer2/neuron_039.png" alt="Neuron 39" onclick="openLightbox(this)">
+        <img src="layer2/neuron_040.png" alt="Neuron 40" onclick="openLightbox(this)">
+        <img src="layer2/neuron_041.png" alt="Neuron 41" onclick="openLightbox(this)">
+        <img src="layer2/neuron_042.png" alt="Neuron 42" onclick="openLightbox(this)">
+        <img src="layer2/neuron_043.png" alt="Neuron 43" onclick="openLightbox(this)">
+        <img src="layer2/neuron_044.png" alt="Neuron 44" onclick="openLightbox(this)">
+        <img src="layer2/neuron_045.png" alt="Neuron 45" onclick="openLightbox(this)">
+        <img src="layer2/neuron_046.png" alt="Neuron 46" onclick="openLightbox(this)">
+        <img src="layer2/neuron_047.png" alt="Neuron 47" onclick="openLightbox(this)">
+        <img src="layer2/neuron_048.png" alt="Neuron 48" onclick="openLightbox(this)">
+        <img src="layer2/neuron_049.png" alt="Neuron 49" onclick="openLightbox(this)">
+        <img src="layer2/neuron_050.png" alt="Neuron 50" onclick="openLightbox(this)">
+        <img src="layer2/neuron_051.png" alt="Neuron 51" onclick="openLightbox(this)">
+        <img src="layer2/neuron_052.png" alt="Neuron 52" onclick="openLightbox(this)">
+        <img src="layer2/neuron_053.png" alt="Neuron 53" onclick="openLightbox(this)">
+        <img src="layer2/neuron_054.png" alt="Neuron 54" onclick="openLightbox(this)">
+        <img src="layer2/neuron_055.png" alt="Neuron 55" onclick="openLightbox(this)">
+        <img src="layer2/neuron_056.png" alt="Neuron 56" onclick="openLightbox(this)">
+        <img src="layer2/neuron_057.png" alt="Neuron 57" onclick="openLightbox(this)">
+        <img src="layer2/neuron_058.png" alt="Neuron 58" onclick="openLightbox(this)">
+        <img src="layer2/neuron_059.png" alt="Neuron 59" onclick="openLightbox(this)">
+        <img src="layer2/neuron_060.png" alt="Neuron 60" onclick="openLightbox(this)">
+        <img src="layer2/neuron_061.png" alt="Neuron 61" onclick="openLightbox(this)">
+        <img src="layer2/neuron_062.png" alt="Neuron 62" onclick="openLightbox(this)">
+        <img src="layer2/neuron_063.png" alt="Neuron 63" onclick="openLightbox(this)">
+        <img src="layer2/neuron_064.png" alt="Neuron 64" onclick="openLightbox(this)">
+        <img src="layer2/neuron_065.png" alt="Neuron 65" onclick="openLightbox(this)">
+        <img src="layer2/neuron_066.png" alt="Neuron 66" onclick="openLightbox(this)">
+        <img src="layer2/neuron_067.png" alt="Neuron 67" onclick="openLightbox(this)">
+        <img src="layer2/neuron_068.png" alt="Neuron 68" onclick="openLightbox(this)">
+        <img src="layer2/neuron_069.png" alt="Neuron 69" onclick="openLightbox(this)">
+        <img src="layer2/neuron_070.png" alt="Neuron 70" onclick="openLightbox(this)">
+        <img src="layer2/neuron_071.png" alt="Neuron 71" onclick="openLightbox(this)">
+        <img src="layer2/neuron_072.png" alt="Neuron 72" onclick="openLightbox(this)">
+        <img src="layer2/neuron_073.png" alt="Neuron 73" onclick="openLightbox(this)">
+        <img src="layer2/neuron_074.png" alt="Neuron 74" onclick="openLightbox(this)">
+        <img src="layer2/neuron_075.png" alt="Neuron 75" onclick="openLightbox(this)">
+        <img src="layer2/neuron_076.png" alt="Neuron 76" onclick="openLightbox(this)">
+        <img src="layer2/neuron_077.png" alt="Neuron 77" onclick="openLightbox(this)">
+        <img src="layer2/neuron_078.png" alt="Neuron 78" onclick="openLightbox(this)">
+        <img src="layer2/neuron_079.png" alt="Neuron 79" onclick="openLightbox(this)">
+        <img src="layer2/neuron_080.png" alt="Neuron 80" onclick="openLightbox(this)">
+        <img src="layer2/neuron_081.png" alt="Neuron 81" onclick="openLightbox(this)">
+        <img src="layer2/neuron_082.png" alt="Neuron 82" onclick="openLightbox(this)">
+        <img src="layer2/neuron_083.png" alt="Neuron 83" onclick="openLightbox(this)">
+        <img src="layer2/neuron_084.png" alt="Neuron 84" onclick="openLightbox(this)">
+        <img src="layer2/neuron_085.png" alt="Neuron 85" onclick="openLightbox(this)">
+        <img src="layer2/neuron_086.png" alt="Neuron 86" onclick="openLightbox(this)">
+        <img src="layer2/neuron_087.png" alt="Neuron 87" onclick="openLightbox(this)">
+        <img src="layer2/neuron_088.png" alt="Neuron 88" onclick="openLightbox(this)">
+        <img src="layer2/neuron_089.png" alt="Neuron 89" onclick="openLightbox(this)">
+        <img src="layer2/neuron_090.png" alt="Neuron 90" onclick="openLightbox(this)">
+        <img src="layer2/neuron_091.png" alt="Neuron 91" onclick="openLightbox(this)">
+        <img src="layer2/neuron_092.png" alt="Neuron 92" onclick="openLightbox(this)">
+        <img src="layer2/neuron_093.png" alt="Neuron 93" onclick="openLightbox(this)">
+        <img src="layer2/neuron_094.png" alt="Neuron 94" onclick="openLightbox(this)">
+        <img src="layer2/neuron_095.png" alt="Neuron 95" onclick="openLightbox(this)">
+        <img src="layer2/neuron_096.png" alt="Neuron 96" onclick="openLightbox(this)">
+        <img src="layer2/neuron_097.png" alt="Neuron 97" onclick="openLightbox(this)">
+        <img src="layer2/neuron_098.png" alt="Neuron 98" onclick="openLightbox(this)">
+        <img src="layer2/neuron_099.png" alt="Neuron 99" onclick="openLightbox(this)">
+        <img src="layer2/neuron_100.png" alt="Neuron 100" onclick="openLightbox(this)">
+        <img src="layer2/neuron_101.png" alt="Neuron 101" onclick="openLightbox(this)">
+        <img src="layer2/neuron_102.png" alt="Neuron 102" onclick="openLightbox(this)">
+        <img src="layer2/neuron_103.png" alt="Neuron 103" onclick="openLightbox(this)">
+        <img src="layer2/neuron_104.png" alt="Neuron 104" onclick="openLightbox(this)">
+        <img src="layer2/neuron_105.png" alt="Neuron 105" onclick="openLightbox(this)">
+        <img src="layer2/neuron_106.png" alt="Neuron 106" onclick="openLightbox(this)">
+        <img src="layer2/neuron_107.png" alt="Neuron 107" onclick="openLightbox(this)">
+        <img src="layer2/neuron_108.png" alt="Neuron 108" onclick="openLightbox(this)">
+        <img src="layer2/neuron_109.png" alt="Neuron 109" onclick="openLightbox(this)">
+        <img src="layer2/neuron_110.png" alt="Neuron 110" onclick="openLightbox(this)">
+        <img src="layer2/neuron_111.png" alt="Neuron 111" onclick="openLightbox(this)">
+        <img src="layer2/neuron_112.png" alt="Neuron 112" onclick="openLightbox(this)">
+        <img src="layer2/neuron_113.png" alt="Neuron 113" onclick="openLightbox(this)">
+        <img src="layer2/neuron_114.png" alt="Neuron 114" onclick="openLightbox(this)">
+        <img src="layer2/neuron_115.png" alt="Neuron 115" onclick="openLightbox(this)">
+        <img src="layer2/neuron_116.png" alt="Neuron 116" onclick="openLightbox(this)">
+        <img src="layer2/neuron_117.png" alt="Neuron 117" onclick="openLightbox(this)">
+        <img src="layer2/neuron_118.png" alt="Neuron 118" onclick="openLightbox(this)">
+        <img src="layer2/neuron_119.png" alt="Neuron 119" onclick="openLightbox(this)">
+        <img src="layer2/neuron_120.png" alt="Neuron 120" onclick="openLightbox(this)">
+        <img src="layer2/neuron_121.png" alt="Neuron 121" onclick="openLightbox(this)">
+        <img src="layer2/neuron_122.png" alt="Neuron 122" onclick="openLightbox(this)">
+        <img src="layer2/neuron_123.png" alt="Neuron 123" onclick="openLightbox(this)">
+        <img src="layer2/neuron_124.png" alt="Neuron 124" onclick="openLightbox(this)">
+        <img src="layer2/neuron_125.png" alt="Neuron 125" onclick="openLightbox(this)">
+        <img src="layer2/neuron_126.png" alt="Neuron 126" onclick="openLightbox(this)">
+        <img src="layer2/neuron_127.png" alt="Neuron 127" onclick="openLightbox(this)">
+    </div>
+    
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" alt="Enlarged">
+    </div>
+    
+    <script>
+        function openLightbox(img) {
+            document.getElementById('lightbox-img').src = img.src;
+            document.getElementById('lightbox').classList.add('active');
+        }
+        
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+    </script>
+</body>
+</html>
+
