@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digit Recognition</title>
+    <title>CNN Digit Recognition</title>
     <style>
         body {
             font-family: monospace;
@@ -81,11 +81,20 @@
             width: 3rem;
             text-align: right;
         }
+
+        .model-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 </head>
 <body>
-    <h1>Digit Recognition</h1>
+    <h1>CNN Digit Recognition <span class="model-badge">CNN v1</span></h1>
     <p>Draw a digit (0-9) and click "Recognize".</p>
 
     <div>
@@ -107,7 +116,7 @@
 
     <script>
         // ============================================================
-        // ONNX Runtime Inference
+        // ONNX Runtime Inference (CNN)
         // ============================================================
         
         let session = null;
@@ -120,8 +129,9 @@
         }
 
         async function runInference(inputData) {
-            // Create tensor with shape [1, 28, 28] (batch, height, width)
-            const tensor = new ort.Tensor('float32', inputData, [1, 28, 28]);
+            // Create tensor with shape [1, 1, 28, 28] (batch, channels, height, width)
+            // CNN expects 4D input unlike the simple MLP which uses 3D
+            const tensor = new ort.Tensor('float32', inputData, [1, 1, 28, 28]);
             
             // Run inference
             const results = await session.run({ image: tensor });
@@ -287,7 +297,7 @@
         updateProbabilityBars([]);
 
         // Load ONNX model
-        ort.InferenceSession.create('assets/simplev1/model.onnx')
+        ort.InferenceSession.create('assets/cnnv1/model.onnx')
             .then(s => {
                 session = s;
                 document.getElementById('recognizeBtn').disabled = false;
@@ -297,21 +307,10 @@
                 alert('Failed to load model. See console for details.');
             });
     </script>
-    <p>Visualizations and analysis available <a href="assets/simplev1/visualizations/visualizations/visualization.html">here</a>.</p>
     <h2>Background</h2>
     <p>
-        I trained a neural network using very naive methods on the free <a href="https://www.kaggle.com/datasets/hojjatk/mnist-dataset?resource=download">MNIST dataset of labeled handwritten digits</a>
-        The dataset itself is split between training and testing data.
-    </p>
-    <p>
-        Here is the repo for training and testing the model checkpointed at the version used in this page:
-        <a href="https://github.com/xkjjx/basic-digit-recognition/tree/simple-version-checkpoint-1">https://github.com/xkjjx/basic-digit-recognition/tree/simple-version-checkpoint-1</a>.
-    </p>
-    <p>
-        As you can easily tell, the model is extremely confident and not very accurate.
-        It is likely heavily overfitted to the training data.
-        Despite that, the model scores highly in the test dataset as well, scoring an accuracy of 98.03%.
-        I ran 100 epochs 3 separate times for a total of 300 epochs.
+        This is a Convolutional Neural Network (CNN) trained on the <a href="https://www.kaggle.com/datasets/hojjatk/mnist-dataset?resource=download">MNIST dataset of labeled handwritten digits</a>.
     </p>
 </body>
 </html>
+
