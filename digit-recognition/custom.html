@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digit Recognition - Custom Model Tester</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+
+        h1 {
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-section {
+            border: 2px dashed #ccc;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            background: #f9f9f9;
+        }
+
+        .upload-section h2 {
+            margin-top: 0;
+            font-size: 1.1rem;
+        }
+
+        .upload-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+        }
+
+        input[type="file"] {
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .model-info {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .model-info strong {
+            color: #333;
+        }
+
+        .error-message {
+            background: #ffebee;
+            border: 1px solid #ef5350;
+            color: #c62828;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .draw-section {
+            flex: 0 0 auto;
+        }
+
+        #drawCanvas {
+            border: 1px solid #000;
+            cursor: crosshair;
+            image-rendering: pixelated;
+            width: 280px;
+            height: 280px;
+        }
+
+        .canvas-label {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .buttons {
+            margin: 1rem 0;
+        }
+
+        button {
+            font-family: monospace;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .model-card {
+            border: 1px solid #ccc;
+            padding: 1rem;
+        }
+
+        .model-status {
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .model-status.loading {
+            color: #f57c00;
+        }
+
+        .model-status.ready {
+            color: #388e3c;
+        }
+
+        .model-status.error {
+            color: #d32f2f;
+        }
+
+        .prediction-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .prediction-value {
+            font-size: 3rem;
+            font-weight: bold;
+            width: 3rem;
+            text-align: center;
+        }
+
+        .confidence {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .probabilities {
+            font-size: 0.85rem;
+        }
+
+        .prob-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.2rem 0;
+        }
+
+        .prob-row .digit {
+            width: 1rem;
+            text-align: right;
+        }
+
+        .prob-row .bar-bg {
+            flex: 1;
+            height: 0.7rem;
+            background: #eee;
+        }
+
+        .prob-row .bar {
+            height: 100%;
+            background: #666;
+            transition: width 0.3s ease;
+        }
+
+        .prob-row .bar.top {
+            background: #000;
+        }
+
+        .prob-row .pct {
+            width: 3.5rem;
+            text-align: right;
+        }
+
+        .instructions {
+            background: #f0f0f0;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .instructions h3 {
+            margin-top: 0;
+            font-size: 1rem;
+        }
+
+        .instructions ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .instructions code {
+            background: #fff;
+            padding: 0.1rem 0.3rem;
+            border: 1px solid #ddd;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+</head>
+<body>
+    <h1>Custom Model Tester</h1>
+    <p class="subtitle">Upload your own ONNX model and test it on handwritten digits</p>
+
+    <div class="instructions">
+        <h3>Instructions:</h3>
+        <ul>
+            <li>Upload an ONNX model file (.onnx) trained for MNIST digit recognition</li>
+            <li>The input shape will be automatically detected from the model</li>
+            <li>Draw a digit on the canvas and click "Recognize" to test</li>
+            <li>Model should accept 28×28 grayscale images and output 10 class probabilities</li>
+        </ul>
+    </div>
+
+    <div class="upload-section">
+        <h2>Upload Model</h2>
+        <div class="upload-controls">
+            <div class="file-input-wrapper">
+                <input type="file" id="modelFile" accept=".onnx" />
+            </div>
+        </div>
+        <div class="model-info" id="modelInfo">No model loaded</div>
+    </div>
+
+    <div class="main-layout">
+        <div class="draw-section">
+            <canvas id="drawCanvas" width="28" height="28"></canvas>
+            <div class="canvas-label">28×28 pixels (scaled 10× for display)</div>
+
+            <div class="buttons">
+                <button id="recognizeBtn" disabled>Recognize</button>
+                <button id="clearBtn">Clear</button>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <div class="model-card">
+                <div class="model-status" id="status">Upload a model to begin</div>
+                
+                <div class="prediction-row">
+                    <span class="prediction-value" id="prediction">?</span>
+                    <span class="confidence" id="confidence"></span>
+                </div>
+                
+                <div class="probabilities" id="probs"></div>
+                <div class="error-message" id="errorMsg" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // State
+        // ============================================================
+
+        let session = null;
+        let inputName = null;
+        let outputName = null;
+        let inputShape = null;
+
+        // ============================================================
+        // Utility Functions
+        // ============================================================
+
+        function softmax(x) {
+            const maxVal = Math.max(...x);
+            const exps = x.map(v => Math.exp(v - maxVal));
+            const sum = exps.reduce((a, b) => a + b, 0);
+            return exps.map(v => v / sum);
+        }
+
+        function updateStatus(status, text) {
+            const el = document.getElementById('status');
+            el.className = `model-status ${status}`;
+            el.textContent = text;
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMsg');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        function hideError() {
+            const errorEl = document.getElementById('errorMsg');
+            errorEl.style.display = 'none';
+        }
+
+        function updateProbabilityBars(probs) {
+            const container = document.getElementById('probs');
+
+            if (!probs || probs.length === 0) {
+                container.innerHTML = Array.from({length: 10}, (_, i) => `
+                    <div class="prob-row">
+                        <span class="digit">${i}</span>
+                        <div class="bar-bg"><div class="bar" style="width: 0%"></div></div>
+                        <span class="pct">-</span>
+                    </div>
+                `).join('');
+                return;
+            }
+
+            const maxIdx = probs.indexOf(Math.max(...probs));
+
+            container.innerHTML = probs.map((p, i) => `
+                <div class="prob-row">
+                    <span class="digit">${i}</span>
+                    <div class="bar-bg"><div class="bar ${i === maxIdx ? 'top' : ''}" style="width: ${(p * 100).toFixed(1)}%"></div></div>
+                    <span class="pct">${(p * 100).toFixed(1)}%</span>
+                </div>
+            `).join('');
+        }
+
+        // ============================================================
+        // Canvas Drawing
+        // ============================================================
+
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        function clearCanvas() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Reset predictions
+            document.getElementById('prediction').textContent = '?';
+            document.getElementById('confidence').textContent = '';
+            updateProbabilityBars([]);
+            hideError();
+        }
+
+        clearCanvas();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            if (e.touches) {
+                return {
+                    x: (e.touches[0].clientX - rect.left) * scaleX,
+                    y: (e.touches[0].clientY - rect.top) * scaleY
+                };
+            }
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const pos = getPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            ctx.beginPath();
+            ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        // ============================================================
+        // Model Loading
+        // ============================================================
+
+        function formatShape(shape) {
+            return '[' + shape.join(', ') + ']';
+        }
+
+        function getInputShape(session) {
+            // Try to get shape from the session's input metadata
+            const inputNames = session.inputNames;
+            if (inputNames.length === 0) {
+                throw new Error('Model has no inputs');
+            }
+
+            // Use a dummy run to determine the expected shape
+            // We'll try different common shapes and see which one works
+            const shapes = [
+                [1, 28, 28],      // Simple MLP (3D)
+                [1, 1, 28, 28],   // CNN with channels (4D)
+                [28, 28],         // 2D (less common)
+            ];
+
+            return shapes;
+        }
+
+        document.getElementById('modelFile').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            updateStatus('loading', 'Loading model...');
+            document.getElementById('recognizeBtn').disabled = true;
+            document.getElementById('modelInfo').textContent = 'Loading...';
+            hideError();
+
+            try {
+                // Read the file as an ArrayBuffer
+                const arrayBuffer = await file.arrayBuffer();
+                
+                // Create ONNX session from the buffer
+                session = await ort.InferenceSession.create(arrayBuffer);
+                
+                // Get input and output metadata
+                const inputs = session.inputNames;
+                const outputs = session.outputNames;
+                
+                if (inputs.length === 0) {
+                    throw new Error('Model has no inputs');
+                }
+                if (outputs.length === 0) {
+                    throw new Error('Model has no outputs');
+                }
+
+                inputName = inputs[0];
+                outputName = outputs[0];
+
+                // Try to detect the correct input shape by testing
+                const testShapes = [
+                    [1, 28, 28],      // Simple MLP (3D)
+                    [1, 1, 28, 28],   // CNN with channels (4D)
+                ];
+
+                let detectedShape = null;
+                const testInput = new Float32Array(784).fill(0);
+
+                for (const shape of testShapes) {
+                    try {
+                        const tensor = new ort.Tensor('float32', testInput, shape);
+                        const feeds = {};
+                        feeds[inputName] = tensor;
+                        await session.run(feeds);
+                        
+                        // If we get here, this shape works!
+                        detectedShape = shape;
+                        break;
+                    } catch (err) {
+                        // This shape didn't work, try the next one
+                        console.log(`Shape ${formatShape(shape)} didn't work:`, err.message);
+                    }
+                }
+
+                if (!detectedShape) {
+                    throw new Error('Could not detect compatible input shape. Model may require a non-standard format.');
+                }
+
+                inputShape = detectedShape;
+                
+                updateStatus('ready', 'Model loaded and ready!');
+                document.getElementById('recognizeBtn').disabled = false;
+                
+                // Display model information
+                let modelType = 'Unknown';
+                if (inputShape.length === 3) {
+                    modelType = 'Simple MLP (3D input)';
+                } else if (inputShape.length === 4 && inputShape[1] === 1) {
+                    modelType = 'CNN (4D input with 1 channel)';
+                } else if (inputShape.length === 4) {
+                    modelType = 'CNN (4D input)';
+                }
+
+                document.getElementById('modelInfo').innerHTML = 
+                    `<strong>File:</strong> ${file.name} (${(file.size / 1024).toFixed(1)} KB)<br>` +
+                    `<strong>Type:</strong> ${modelType}<br>` +
+                    `<strong>Input:</strong> "${inputName}" ${formatShape(inputShape)}<br>` +
+                    `<strong>Output:</strong> "${outputName}"`;
+                    
+            } catch (err) {
+                console.error('Failed to load model:', err);
+                updateStatus('error', `Failed to load: ${err.message}`);
+                document.getElementById('modelInfo').textContent = `Error: ${err.message}`;
+                session = null;
+            }
+        });
+
+        // ============================================================
+        // Image Processing & Inference
+        // ============================================================
+
+        function getImageData() {
+            const imageData = ctx.getImageData(0, 0, 28, 28);
+            const pixels = imageData.data;
+
+            const input = new Float32Array(784);
+            for (let i = 0; i < 784; i++) {
+                input[i] = pixels[i * 4] / 255.0;
+            }
+
+            return input;
+        }
+
+        async function recognize() {
+            if (!session) {
+                alert('Please upload a model first');
+                return;
+            }
+
+            hideError();
+            const input = getImageData();
+
+            try {
+                const tensor = new ort.Tensor('float32', input, inputShape);
+                const feeds = {};
+                feeds[inputName] = tensor;
+                
+                const results = await session.run(feeds);
+                
+                // Get the output using the detected output name
+                const output = results[outputName];
+                const logits = Array.from(output.data);
+
+                const probs = softmax(logits);
+
+                let maxIdx = 0;
+                let maxVal = probs[0];
+                for (let i = 1; i < probs.length; i++) {
+                    if (probs[i] > maxVal) {
+                        maxVal = probs[i];
+                        maxIdx = i;
+                    }
+                }
+
+                document.getElementById('prediction').textContent = maxIdx;
+                document.getElementById('confidence').textContent =
+                    `Confidence: ${(maxVal * 100).toFixed(1)}%`;
+                updateProbabilityBars(probs);
+            } catch (err) {
+                console.error('Inference error:', err);
+                showError(`Inference failed: ${err.message}`);
+                updateStatus('error', 'Inference failed');
+            }
+        }
+
+        // ============================================================
+        // Event Listeners
+        // ============================================================
+
+        document.getElementById('recognizeBtn').addEventListener('click', recognize);
+        document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+
+        // Initialize probability bars
+        updateProbabilityBars([]);
+    </script>
+</body>
+</html>
