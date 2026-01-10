@@ -408,6 +408,17 @@ header h1 .cursor {
     font-size: 0.9rem;
 }
 
+.project-intro {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.project-intro p {
+    margin: 1rem 0;
+    color: var(--fg);
+}
+
 .section-label {
     font-size: 0.7rem;
     text-transform: uppercase;
