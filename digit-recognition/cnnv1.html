@@ -4,391 +4,229 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CNN Digit Recognition</title>
-    <style>
-        :root {
-            --bg: #fafafa;
-            --fg: #1a1a1a;
-            --muted: #666;
-            --border: #ccc;
-            --card-bg: #fff;
-            --bar-bg: #eee;
-            --bar-fill: #666;
-            --bar-top: #000;
-            --badge-bg: #e3f2fd;
-            --badge-border: #90caf9;
-            --canvas-border: #000;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg: #0a0a0a;
-                --fg: #e8e8e8;
-                --muted: #888;
-                --border: #333;
-                --card-bg: #111;
-                --bar-bg: #333;
-                --bar-fill: #888;
-                --bar-top: #fff;
-                --badge-bg: #1a3a5c;
-                --badge-border: #4a7ab0;
-                --canvas-border: #444;
-            }
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
-            max-width: 600px;
-            margin: 2rem auto;
-            padding: 1rem;
-            background: var(--bg);
-            color: var(--fg);
-        }
-
-        a {
-            color: var(--fg);
-        }
-
-        #drawCanvas {
-            border: 1px solid var(--canvas-border);
-            cursor: crosshair;
-            image-rendering: pixelated;
-            width: 280px;
-            height: 280px;
-        }
-        
-        .buttons {
-            margin: 1rem 0;
-        }
-        
-        button {
-            font-family: inherit;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            background: var(--card-bg);
-            color: var(--fg);
-            border: 1px solid var(--border);
-        }
-
-        button:hover {
-            border-color: var(--fg);
-        }
-        
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .result {
-            margin: 1.5rem 0;
-            padding: 1rem;
-            border: 1px solid var(--border);
-            background: var(--card-bg);
-        }
-        
-        .prediction-value {
-            font-size: 3rem;
-            font-weight: bold;
-        }
-        
-        .probabilities {
-            margin-top: 1rem;
-            font-size: 0.875rem;
-        }
-        
-        .prob-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin: 0.25rem 0;
-        }
-        
-        .prob-row .digit {
-            width: 1rem;
-        }
-        
-        .prob-row .bar-bg {
-            flex: 1;
-            height: 0.75rem;
-            background: var(--bar-bg);
-        }
-        
-        .prob-row .bar {
-            height: 100%;
-            background: var(--bar-fill);
-        }
-        
-        .prob-row .bar.top {
-            background: var(--bar-top);
-        }
-        
-        .prob-row .pct {
-            width: 3rem;
-            text-align: right;
-        }
-
-        .model-badge {
-            display: inline-block;
-            background: var(--badge-bg);
-            border: 1px solid var(--badge-border);
-            padding: 0.2rem 0.5rem;
-            font-size: 0.75rem;
-            margin-left: 0.5rem;
-        }
-
-        .canvas-label {
-            font-size: 0.75rem;
-            color: var(--muted);
-        }
-
-        h2 {
-            margin-top: 2rem;
-        }
-
-        p {
-            line-height: 1.6;
-        }
-
-        .nav-link {
-            display: inline-block;
-            color: var(--muted);
-            font-size: 0.8rem;
-            text-decoration: none;
-            margin-bottom: 1rem;
-        }
-
-        .nav-link:hover {
-            color: var(--fg);
-        }
-
-        .nav-link::before {
-            content: '← ';
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 </head>
 <body>
-    <a href="./" class="nav-link">Back to main page</a>
-    <h1>CNN Digit Recognition <span class="model-badge">CNN v1</span></h1>
-    <p>Draw a digit (0-9) and click "Recognize".</p>
+    <div class="page-narrow">
+        <a href="./" class="nav-link">Back to main page</a>
+        <h1>CNN Digit Recognition <span class="model-badge inline">CNN v1</span></h1>
+        <p>Draw a digit (0-9) and click "Recognize".</p>
 
-    <div>
-        <canvas id="drawCanvas" width="28" height="28"></canvas>
-        <div class="canvas-label">28×28 pixels (scaled 10× for display)</div>
-    </div>
+        <div>
+            <canvas id="drawCanvas" width="28" height="28"></canvas>
+            <div class="canvas-label">28×28 pixels (scaled 10× for display)</div>
+        </div>
 
-    <div class="buttons">
-        <button id="recognizeBtn" disabled>Recognize</button>
-        <button id="clearBtn">Clear</button>
-    </div>
+        <div class="buttons">
+            <button id="recognizeBtn" disabled>Recognize</button>
+            <button id="clearBtn">Clear</button>
+        </div>
 
-    <div class="result">
-        <div>Prediction: <span class="prediction-value" id="prediction">?</span></div>
-        <div id="confidence"></div>
-        
-        <div class="probabilities" id="probabilities"></div>
-    </div>
-
-    <script>
-        // ============================================================
-        // ONNX Runtime Inference (CNN)
-        // ============================================================
-        
-        let session = null;
-
-        function softmax(x) {
-            const maxVal = Math.max(...x);
-            const exps = x.map(v => Math.exp(v - maxVal));
-            const sum = exps.reduce((a, b) => a + b, 0);
-            return exps.map(v => v / sum);
-        }
-
-        async function runInference(inputData) {
-            // Create tensor with shape [1, 1, 28, 28] (batch, channels, height, width)
-            // CNN expects 4D input unlike the simple MLP which uses 3D
-            const tensor = new ort.Tensor('float32', inputData, [1, 1, 28, 28]);
+        <div class="result">
+            <div>Prediction: <span class="prediction-value" id="prediction">?</span></div>
+            <div id="confidence"></div>
             
-            // Run inference
-            const results = await session.run({ image: tensor });
+            <div class="probabilities" id="probabilities"></div>
+        </div>
+
+        <script>
+            // ============================================================
+            // ONNX Runtime Inference (CNN)
+            // ============================================================
             
-            // Get output logits
-            return Array.from(results.logits.data);
-        }
+            let session = null;
 
-        // ============================================================
-        // Canvas Drawing
-        // ============================================================
+            function softmax(x) {
+                const maxVal = Math.max(...x);
+                const exps = x.map(v => Math.exp(v - maxVal));
+                const sum = exps.reduce((a, b) => a + b, 0);
+                return exps.map(v => v / sum);
+            }
 
-        const canvas = document.getElementById('drawCanvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        
-        let isDrawing = false;
-        let lastX = 0;
-        let lastY = 0;
+            async function runInference(inputData) {
+                // Create tensor with shape [1, 1, 28, 28] (batch, channels, height, width)
+                // CNN expects 4D input unlike the simple MLP which uses 3D
+                const tensor = new ort.Tensor('float32', inputData, [1, 1, 28, 28]);
+                
+                // Run inference
+                const results = await session.run({ image: tensor });
+                
+                // Get output logits
+                return Array.from(results.logits.data);
+            }
 
-        function clearCanvas() {
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            document.getElementById('prediction').textContent = '?';
-            document.getElementById('confidence').textContent = '';
-            updateProbabilityBars([]);
-        }
+            // ============================================================
+            // Canvas Drawing
+            // ============================================================
 
-        clearCanvas();
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
+            const canvas = document.getElementById('drawCanvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
             
-            if (e.touches) {
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+
+            function clearCanvas() {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                document.getElementById('prediction').textContent = '?';
+                document.getElementById('confidence').textContent = '';
+                updateProbabilityBars([]);
+            }
+
+            clearCanvas();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                
+                if (e.touches) {
+                    return {
+                        x: (e.touches[0].clientX - rect.left) * scaleX,
+                        y: (e.touches[0].clientY - rect.top) * scaleY
+                    };
+                }
                 return {
-                    x: (e.touches[0].clientX - rect.left) * scaleX,
-                    y: (e.touches[0].clientY - rect.top) * scaleY
+                    x: (e.clientX - rect.left) * scaleX,
+                    y: (e.clientY - rect.top) * scaleY
                 };
             }
-            return {
-                x: (e.clientX - rect.left) * scaleX,
-                y: (e.clientY - rect.top) * scaleY
-            };
-        }
 
-        function startDrawing(e) {
-            isDrawing = true;
-            const pos = getPos(e);
-            lastX = pos.x;
-            lastY = pos.y;
-            ctx.beginPath();
-            ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, Math.PI * 2);
-            ctx.fillStyle = '#fff';
-            ctx.fill();
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            e.preventDefault();
-            
-            const pos = getPos(e);
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            
-            lastX = pos.x;
-            lastY = pos.y;
-        }
-
-        function stopDrawing() {
-            isDrawing = false;
-        }
-
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
-        canvas.addEventListener('touchstart', startDrawing);
-        canvas.addEventListener('touchmove', draw);
-        canvas.addEventListener('touchend', stopDrawing);
-
-        // ============================================================
-        // Image Processing & Inference
-        // ============================================================
-
-        function getImageData() {
-            const imageData = ctx.getImageData(0, 0, 28, 28);
-            const pixels = imageData.data;
-            
-            // Convert to Float32Array for ONNX (784 values, normalized 0-1)
-            const input = new Float32Array(784);
-            for (let i = 0; i < 784; i++) {
-                input[i] = pixels[i * 4] / 255.0;
+            function startDrawing(e) {
+                isDrawing = true;
+                const pos = getPos(e);
+                lastX = pos.x;
+                lastY = pos.y;
+                ctx.beginPath();
+                ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
             }
-            
-            return input;
-        }
 
-        function updateProbabilityBars(probs) {
-            const container = document.getElementById('probabilities');
-            
-            if (probs.length === 0) {
-                container.innerHTML = Array.from({length: 10}, (_, i) => `
+            function draw(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                
+                const pos = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                
+                lastX = pos.x;
+                lastY = pos.y;
+            }
+
+            function stopDrawing() {
+                isDrawing = false;
+            }
+
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('touchend', stopDrawing);
+
+            // ============================================================
+            // Image Processing & Inference
+            // ============================================================
+
+            function getImageData() {
+                const imageData = ctx.getImageData(0, 0, 28, 28);
+                const pixels = imageData.data;
+                
+                // Convert to Float32Array for ONNX (784 values, normalized 0-1)
+                const input = new Float32Array(784);
+                for (let i = 0; i < 784; i++) {
+                    input[i] = pixels[i * 4] / 255.0;
+                }
+                
+                return input;
+            }
+
+            function updateProbabilityBars(probs) {
+                const container = document.getElementById('probabilities');
+                
+                if (probs.length === 0) {
+                    container.innerHTML = Array.from({length: 10}, (_, i) => `
+                        <div class="prob-row">
+                            <span class="digit">${i}</span>
+                            <div class="bar-bg"><div class="bar" style="width: 0%"></div></div>
+                            <span class="pct">-</span>
+                        </div>
+                    `).join('');
+                    return;
+                }
+
+                const maxIdx = probs.indexOf(Math.max(...probs));
+                
+                container.innerHTML = probs.map((p, i) => `
                     <div class="prob-row">
                         <span class="digit">${i}</span>
-                        <div class="bar-bg"><div class="bar" style="width: 0%"></div></div>
-                        <span class="pct">-</span>
+                        <div class="bar-bg"><div class="bar ${i === maxIdx ? 'top' : ''}" style="width: ${(p * 100).toFixed(1)}%"></div></div>
+                        <span class="pct">${(p * 100).toFixed(1)}%</span>
                     </div>
                 `).join('');
-                return;
             }
 
-            const maxIdx = probs.indexOf(Math.max(...probs));
-            
-            container.innerHTML = probs.map((p, i) => `
-                <div class="prob-row">
-                    <span class="digit">${i}</span>
-                    <div class="bar-bg"><div class="bar ${i === maxIdx ? 'top' : ''}" style="width: ${(p * 100).toFixed(1)}%"></div></div>
-                    <span class="pct">${(p * 100).toFixed(1)}%</span>
-                </div>
-            `).join('');
-        }
-
-        async function recognize() {
-            if (!session) {
-                alert('Model not loaded yet!');
-                return;
-            }
-
-            const input = getImageData();
-            const logits = await runInference(input);
-            const probs = softmax(logits);
-            
-            let maxIdx = 0;
-            let maxVal = probs[0];
-            for (let i = 1; i < probs.length; i++) {
-                if (probs[i] > maxVal) {
-                    maxVal = probs[i];
-                    maxIdx = i;
+            async function recognize() {
+                if (!session) {
+                    alert('Model not loaded yet!');
+                    return;
                 }
+
+                const input = getImageData();
+                const logits = await runInference(input);
+                const probs = softmax(logits);
+                
+                let maxIdx = 0;
+                let maxVal = probs[0];
+                for (let i = 1; i < probs.length; i++) {
+                    if (probs[i] > maxVal) {
+                        maxVal = probs[i];
+                        maxIdx = i;
+                    }
+                }
+
+                document.getElementById('prediction').textContent = maxIdx;
+                document.getElementById('confidence').textContent = 
+                    `Confidence: ${(maxVal * 100).toFixed(1)}%`;
+                
+                updateProbabilityBars(probs);
             }
 
-            document.getElementById('prediction').textContent = maxIdx;
-            document.getElementById('confidence').textContent = 
-                `Confidence: ${(maxVal * 100).toFixed(1)}%`;
-            
-            updateProbabilityBars(probs);
-        }
+            // ============================================================
+            // Initialization
+            // ============================================================
 
-        // ============================================================
-        // Initialization
-        // ============================================================
+            document.getElementById('recognizeBtn').addEventListener('click', recognize);
+            document.getElementById('clearBtn').addEventListener('click', clearCanvas);
 
-        document.getElementById('recognizeBtn').addEventListener('click', recognize);
-        document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+            updateProbabilityBars([]);
 
-        updateProbabilityBars([]);
-
-        // Load ONNX model
-        ort.InferenceSession.create('assets/cnnv1/model.onnx')
-            .then(s => {
-                session = s;
-                document.getElementById('recognizeBtn').disabled = false;
-            })
-            .catch(err => {
-                console.error('Failed to load model:', err);
-                alert('Failed to load model. See console for details.');
-            });
-    </script>
-    <h2>Background</h2>
-    <p>
-        This is a Convolutional Neural Network (CNN) trained on the <a href="https://www.kaggle.com/datasets/hojjatk/mnist-dataset?resource=download">MNIST dataset of labeled handwritten digits</a>.
-    </p>
+            // Load ONNX model
+            ort.InferenceSession.create('assets/cnnv1/model.onnx')
+                .then(s => {
+                    session = s;
+                    document.getElementById('recognizeBtn').disabled = false;
+                })
+                .catch(err => {
+                    console.error('Failed to load model:', err);
+                    alert('Failed to load model. See console for details.');
+                });
+        </script>
+        <h2>Background</h2>
+        <p>
+            This is a Convolutional Neural Network (CNN) trained on the <a href="https://www.kaggle.com/datasets/hojjatk/mnist-dataset?resource=download">MNIST dataset of labeled handwritten digits</a>.
+        </p>
+    </div>
 </body>
 </html>
-

@@ -1,0 +1,639 @@
+/* =============================================================================
+   CSS Variables - Light/Dark Theme
+   ============================================================================= */
+
+:root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #666;
+    --border: #ccc;
+    --card-bg: #fff;
+    --card-border: #ddd;
+    --bar-bg: #eee;
+    --bar-fill: #666;
+    --bar-top: #000;
+    --badge-bg: #e3f2fd;
+    --badge-border: #90caf9;
+    --badge-simple-bg: #fff3e0;
+    --badge-simple-border: #ffb74d;
+    --badge-cnn-bg: #e3f2fd;
+    --badge-cnn-border: #90caf9;
+    --canvas-border: #000;
+    --accent: #00875a;
+    --accent-dim: #00664a;
+    --meta-color: #999;
+    --upload-bg: #f9f9f9;
+    --instructions-bg: #f0f0f0;
+    --code-bg: #fff;
+    --error-bg: #ffebee;
+    --error-border: #ef5350;
+    --error-text: #c62828;
+    --status-loading: #f57c00;
+    --status-ready: #388e3c;
+    --status-error: #d32f2f;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0a0a0a;
+        --fg: #e8e8e8;
+        --muted: #888;
+        --border: #333;
+        --card-bg: #111;
+        --card-border: #222;
+        --bar-bg: #333;
+        --bar-fill: #888;
+        --bar-top: #fff;
+        --badge-bg: #1a3a5c;
+        --badge-border: #4a7ab0;
+        --badge-simple-bg: #3d2a0f;
+        --badge-simple-border: #b8860b;
+        --badge-cnn-bg: #1a3a5c;
+        --badge-cnn-border: #4a7ab0;
+        --canvas-border: #444;
+        --accent: #00ff88;
+        --accent-dim: #00aa5e;
+        --meta-color: #555;
+        --upload-bg: #161616;
+        --instructions-bg: #1a1a1a;
+        --code-bg: #222;
+        --error-bg: #2d1a1a;
+        --error-border: #b71c1c;
+        --error-text: #ef9a9a;
+        --status-loading: #ffb74d;
+        --status-ready: #66bb6a;
+        --status-error: #ef5350;
+    }
+}
+
+/* =============================================================================
+   Base Styles
+   ============================================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+    margin: 0;
+    padding: 2rem 1rem;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.6;
+}
+
+a {
+    color: var(--fg);
+}
+
+h2 {
+    margin-top: 2rem;
+}
+
+p {
+    line-height: 1.6;
+}
+
+/* =============================================================================
+   Layout
+   ============================================================================= */
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.page-narrow {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.page-wide {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.main-layout {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+/* =============================================================================
+   Navigation
+   ============================================================================= */
+
+.nav-link {
+    display: inline-block;
+    color: var(--muted);
+    font-size: 0.8rem;
+    text-decoration: none;
+    margin-bottom: 1rem;
+}
+
+.nav-link:hover {
+    color: var(--fg);
+}
+
+.nav-link::before {
+    content: '← ';
+}
+
+/* =============================================================================
+   Buttons
+   ============================================================================= */
+
+.buttons {
+    margin: 1rem 0;
+}
+
+button {
+    font-family: inherit;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    background: var(--card-bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+}
+
+button:hover {
+    border-color: var(--fg);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* =============================================================================
+   Canvas
+   ============================================================================= */
+
+.draw-section {
+    flex: 0 0 auto;
+}
+
+#drawCanvas {
+    border: 1px solid var(--canvas-border);
+    cursor: crosshair;
+    image-rendering: pixelated;
+    width: 280px;
+    height: 280px;
+}
+
+.canvas-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+/* =============================================================================
+   Results & Cards
+   ============================================================================= */
+
+.result {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+}
+
+.results-section {
+    flex: 1;
+    min-width: 300px;
+}
+
+.model-card {
+    border: 1px solid var(--border);
+    padding: 1rem;
+    background: var(--card-bg);
+}
+
+.model-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.model-name {
+    font-weight: bold;
+    color: inherit;
+    text-decoration: none;
+}
+
+.model-name:hover {
+    text-decoration: underline;
+}
+
+/* =============================================================================
+   Predictions
+   ============================================================================= */
+
+.prediction-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.prediction-value {
+    font-size: 3rem;
+    font-weight: bold;
+}
+
+.prediction-value.compact {
+    font-size: 2.5rem;
+    width: 2.5rem;
+    text-align: center;
+}
+
+.confidence {
+    font-size: 0.875rem;
+    color: var(--muted);
+}
+
+/* =============================================================================
+   Probability Bars
+   ============================================================================= */
+
+.probabilities {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+}
+
+.probabilities.compact {
+    font-size: 0.8rem;
+}
+
+.prob-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.25rem 0;
+}
+
+.probabilities.compact .prob-row {
+    margin: 0.15rem 0;
+}
+
+.prob-row .digit {
+    width: 1rem;
+    text-align: right;
+}
+
+.prob-row .bar-bg {
+    flex: 1;
+    height: 0.75rem;
+    background: var(--bar-bg);
+}
+
+.probabilities.compact .prob-row .bar-bg {
+    height: 0.6rem;
+}
+
+.prob-row .bar {
+    height: 100%;
+    background: var(--bar-fill);
+    transition: width 0.3s ease;
+}
+
+.prob-row .bar.top {
+    background: var(--bar-top);
+}
+
+.prob-row .pct {
+    width: 3rem;
+    text-align: right;
+}
+
+/* =============================================================================
+   Badges
+   ============================================================================= */
+
+.model-badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+.model-badge.inline {
+    background: var(--badge-bg);
+    border: 1px solid var(--badge-border);
+}
+
+.model-badge.outlined {
+    border: 1px solid;
+}
+
+.model-badge.simple {
+    background: var(--badge-simple-bg);
+    border-color: var(--badge-simple-border);
+}
+
+.model-badge.cnn {
+    background: var(--badge-cnn-bg);
+    border-color: var(--badge-cnn-border);
+}
+
+/* =============================================================================
+   Status Indicators
+   ============================================================================= */
+
+.model-status {
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+.model-status.loading {
+    color: var(--status-loading);
+}
+
+.model-status.ready {
+    color: var(--status-ready);
+}
+
+.model-status.error {
+    color: var(--status-error);
+}
+
+/* =============================================================================
+   Error Messages
+   ============================================================================= */
+
+.error-message {
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    color: var(--error-text);
+    padding: 1rem;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* =============================================================================
+   Index Page - Header & Cards
+   ============================================================================= */
+
+header {
+    margin-bottom: 3rem;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 2rem;
+}
+
+header h1 {
+    font-size: 2rem;
+    font-weight: 400;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.02em;
+}
+
+header h1 .cursor {
+    display: inline-block;
+    width: 0.6em;
+    height: 1.1em;
+    background: var(--accent);
+    margin-left: 0.1em;
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+.tagline {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin: 2rem 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--card-border);
+}
+
+.demos {
+    display: grid;
+    gap: 1rem;
+}
+
+.demo-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.demo-card:hover {
+    border-color: var(--accent-dim);
+    transform: translateX(4px);
+}
+
+.demo-card:hover .demo-title {
+    color: var(--accent);
+}
+
+.demo-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.demo-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.demo-badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.demo-badge.mlp {
+    border-color: #ffb74d;
+    color: #ffb74d;
+}
+
+.demo-badge.cnn {
+    border-color: #64b5f6;
+    color: #64b5f6;
+}
+
+.demo-badge.compare {
+    border-color: #ba68c8;
+    color: #ba68c8;
+}
+
+.demo-badge.custom {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.demo-desc {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.demo-meta {
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--meta-color);
+}
+
+/* =============================================================================
+   Footer
+   ============================================================================= */
+
+footer {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--card-border);
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+footer a {
+    color: var(--accent-dim);
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+/* =============================================================================
+   Custom Page - Upload Section
+   ============================================================================= */
+
+.subtitle {
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+}
+
+.upload-section {
+    border: 2px dashed var(--border);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    background: var(--upload-bg);
+}
+
+.upload-section h2 {
+    margin-top: 0;
+    font-size: 1.1rem;
+}
+
+.upload-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.file-input-wrapper {
+    position: relative;
+}
+
+input[type="file"] {
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: var(--fg);
+}
+
+.model-info {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    line-height: 1.6;
+}
+
+.model-info strong {
+    color: var(--fg);
+}
+
+.instructions {
+    background: var(--instructions-bg);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.instructions h3 {
+    margin-top: 0;
+    font-size: 1rem;
+}
+
+.instructions ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.instructions code {
+    background: var(--code-bg);
+    padding: 0.1rem 0.3rem;
+    border: 1px solid var(--border);
+}
+
+/* =============================================================================
+   Integrated Page - Model Links
+   ============================================================================= */
+
+.model-links {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.model-links p {
+    margin: 0 0 0.25rem 0;
+}
+
+.model-links ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.model-links a {
+    color: var(--muted);
+}
+
+.model-links a:hover {
+    color: var(--fg);
+}
+
+.models-section {
+    flex: 1;
+    min-width: 300px;
+}
+
+.model-results {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+

@@ -4,603 +4,329 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digit Recognition - Model Comparison</title>
-    <style>
-        :root {
-            --bg: #fafafa;
-            --fg: #1a1a1a;
-            --muted: #666;
-            --border: #ccc;
-            --card-bg: #fff;
-            --bar-bg: #eee;
-            --bar-fill: #666;
-            --bar-top: #000;
-            --badge-simple-bg: #fff3e0;
-            --badge-simple-border: #ffb74d;
-            --badge-cnn-bg: #e3f2fd;
-            --badge-cnn-border: #90caf9;
-            --canvas-border: #000;
-            --status-loading: #f57c00;
-            --status-ready: #388e3c;
-            --status-error: #d32f2f;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg: #0a0a0a;
-                --fg: #e8e8e8;
-                --muted: #888;
-                --border: #333;
-                --card-bg: #111;
-                --bar-bg: #333;
-                --bar-fill: #888;
-                --bar-top: #fff;
-                --badge-simple-bg: #3d2a0f;
-                --badge-simple-border: #b8860b;
-                --badge-cnn-bg: #1a3a5c;
-                --badge-cnn-border: #4a7ab0;
-                --canvas-border: #444;
-                --status-loading: #ffb74d;
-                --status-ready: #66bb6a;
-                --status-error: #ef5350;
-            }
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
-            max-width: 900px;
-            margin: 2rem auto;
-            padding: 1rem;
-            background: var(--bg);
-            color: var(--fg);
-        }
-
-        h1 {
-            margin-bottom: 0.5rem;
-        }
-
-        .subtitle {
-            color: var(--muted);
-            margin-bottom: 1.5rem;
-        }
-
-        .main-layout {
-            display: flex;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .draw-section {
-            flex: 0 0 auto;
-        }
-
-        #drawCanvas {
-            border: 1px solid var(--canvas-border);
-            cursor: crosshair;
-            image-rendering: pixelated;
-            width: 280px;
-            height: 280px;
-        }
-
-        .canvas-label {
-            font-size: 0.75rem;
-            color: var(--muted);
-        }
-
-        .buttons {
-            margin: 1rem 0;
-        }
-
-        .model-links {
-            margin-top: 1rem;
-            font-size: 0.8rem;
-            color: var(--muted);
-        }
-
-        .model-links p {
-            margin: 0 0 0.25rem 0;
-        }
-
-        .model-links ul {
-            margin: 0;
-            padding-left: 1.25rem;
-        }
-
-        .model-links a {
-            color: var(--muted);
-        }
-
-        .model-links a:hover {
-            color: var(--fg);
-        }
-
-        button {
-            font-family: inherit;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            background: var(--card-bg);
-            color: var(--fg);
-            border: 1px solid var(--border);
-        }
-
-        button:hover {
-            border-color: var(--fg);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .models-section {
-            flex: 1;
-            min-width: 300px;
-        }
-
-        .model-results {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .model-card {
-            border: 1px solid var(--border);
-            padding: 1rem;
-            background: var(--card-bg);
-        }
-
-        .model-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .model-name {
-            font-weight: bold;
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .model-name:hover {
-            text-decoration: underline;
-        }
-
-        .model-badge {
-            display: inline-block;
-            padding: 0.2rem 0.5rem;
-            font-size: 0.7rem;
-            border: 1px solid;
-        }
-
-        .model-badge.simple {
-            background: var(--badge-simple-bg);
-            border-color: var(--badge-simple-border);
-        }
-
-        .model-badge.cnn {
-            background: var(--badge-cnn-bg);
-            border-color: var(--badge-cnn-border);
-        }
-
-        .model-status {
-            font-size: 0.75rem;
-            color: var(--muted);
-        }
-
-        .model-status.loading {
-            color: var(--status-loading);
-        }
-
-        .model-status.ready {
-            color: var(--status-ready);
-        }
-
-        .model-status.error {
-            color: var(--status-error);
-        }
-
-        .prediction-row {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .prediction-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            width: 2.5rem;
-            text-align: center;
-        }
-
-        .confidence {
-            font-size: 0.875rem;
-            color: var(--muted);
-        }
-
-        .probabilities {
-            font-size: 0.8rem;
-        }
-
-        .prob-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin: 0.15rem 0;
-        }
-
-        .prob-row .digit {
-            width: 1rem;
-            text-align: right;
-        }
-
-        .prob-row .bar-bg {
-            flex: 1;
-            height: 0.6rem;
-            background: var(--bar-bg);
-        }
-
-        .prob-row .bar {
-            height: 100%;
-            background: var(--bar-fill);
-        }
-
-        .prob-row .bar.top {
-            background: var(--bar-top);
-        }
-
-        .prob-row .pct {
-            width: 3rem;
-            text-align: right;
-        }
-
-        .loading-indicator {
-            text-align: center;
-            padding: 2rem;
-            color: var(--muted);
-        }
-
-        .nav-link {
-            display: inline-block;
-            color: var(--muted);
-            font-size: 0.8rem;
-            text-decoration: none;
-            margin-bottom: 1rem;
-        }
-
-        .nav-link:hover {
-            color: var(--fg);
-        }
-
-        .nav-link::before {
-            content: '← ';
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 </head>
 <body>
-    <a href="./" class="nav-link">Back to main page</a>
-    <h1>Digit Recognition</h1>
-    <p class="subtitle">Compare predictions across multiple models</p>
+    <div class="page-wide">
+        <a href="./" class="nav-link">Back to main page</a>
+        <h1>Digit Recognition</h1>
+        <p class="subtitle">Compare predictions across multiple models</p>
 
-    <div class="main-layout">
-        <div class="draw-section">
-            <canvas id="drawCanvas" width="28" height="28"></canvas>
-            <div class="canvas-label">28×28 pixels (scaled 10× for display)</div>
+        <div class="main-layout">
+            <div class="draw-section">
+                <canvas id="drawCanvas" width="28" height="28"></canvas>
+                <div class="canvas-label">28×28 pixels (scaled 10× for display)</div>
 
-            <div class="buttons">
-                <button id="recognizeBtn" disabled>Recognize All</button>
-                <button id="clearBtn">Clear</button>
+                <div class="buttons">
+                    <button id="recognizeBtn" disabled>Recognize All</button>
+                    <button id="clearBtn">Clear</button>
+                </div>
+
+                <div class="model-links">
+                    <p>For more info, see individual pages:</p>
+                    <ul>
+                        <li><a href="simplev1.html">Simple v1</a></li>
+                        <li><a href="cnnv1.html">CNN v1</a></li>
+                        <li><a href="cnnv2.html">CNN v2</a></li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="model-links">
-                <p>For more info, see individual pages:</p>
-                <ul>
-                    <li><a href="simplev1.html">Simple v1</a></li>
-                    <li><a href="cnnv1.html">CNN v1</a></li>
-                    <li><a href="cnnv2.html">CNN v2</a></li>
-                </ul>
+            <div class="models-section">
+                <div class="model-results">
+                    <!-- Simple v1 -->
+                    <div class="model-card" id="simplev1-card">
+                        <div class="model-header">
+                            <a class="model-name" href="simplev1.html">Simple MLP</a>
+                            <span class="model-badge outlined simple">Simple v1</span>
+                            <span class="model-status loading" id="simplev1-status">Loading...</span>
+                        </div>
+                        <div class="prediction-row">
+                            <span class="prediction-value compact" id="simplev1-prediction">?</span>
+                            <span class="confidence" id="simplev1-confidence"></span>
+                        </div>
+                        <div class="probabilities compact" id="simplev1-probs"></div>
+                    </div>
+
+                    <!-- CNN v1 -->
+                    <div class="model-card" id="cnnv1-card">
+                        <div class="model-header">
+                            <a class="model-name" href="cnnv1.html">CNN</a>
+                            <span class="model-badge outlined cnn">CNN v1</span>
+                            <span class="model-status loading" id="cnnv1-status">Loading...</span>
+                        </div>
+                        <div class="prediction-row">
+                            <span class="prediction-value compact" id="cnnv1-prediction">?</span>
+                            <span class="confidence" id="cnnv1-confidence"></span>
+                        </div>
+                        <div class="probabilities compact" id="cnnv1-probs"></div>
+                    </div>
+
+                    <!-- CNN v2 -->
+                    <div class="model-card" id="cnnv2-card">
+                        <div class="model-header">
+                            <a class="model-name" href="cnnv2.html">CNN</a>
+                            <span class="model-badge outlined cnn">CNN v2</span>
+                            <span class="model-status loading" id="cnnv2-status">Loading...</span>
+                        </div>
+                        <div class="prediction-row">
+                            <span class="prediction-value compact" id="cnnv2-prediction">?</span>
+                            <span class="confidence" id="cnnv2-confidence"></span>
+                        </div>
+                        <div class="probabilities compact" id="cnnv2-probs"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="models-section">
-            <div class="model-results">
-                <!-- Simple v1 -->
-                <div class="model-card" id="simplev1-card">
-                    <div class="model-header">
-                        <a class="model-name" href="simplev1.html">Simple MLP</a>
-                        <span class="model-badge simple">Simple v1</span>
-                        <span class="model-status loading" id="simplev1-status">Loading...</span>
-                    </div>
-                    <div class="prediction-row">
-                        <span class="prediction-value" id="simplev1-prediction">?</span>
-                        <span class="confidence" id="simplev1-confidence"></span>
-                    </div>
-                    <div class="probabilities" id="simplev1-probs"></div>
-                </div>
+        <script>
+            // ============================================================
+            // Model Configuration
+            // ============================================================
 
-                <!-- CNN v1 -->
-                <div class="model-card" id="cnnv1-card">
-                    <div class="model-header">
-                        <a class="model-name" href="cnnv1.html">CNN</a>
-                        <span class="model-badge cnn">CNN v1</span>
-                        <span class="model-status loading" id="cnnv1-status">Loading...</span>
-                    </div>
-                    <div class="prediction-row">
-                        <span class="prediction-value" id="cnnv1-prediction">?</span>
-                        <span class="confidence" id="cnnv1-confidence"></span>
-                    </div>
-                    <div class="probabilities" id="cnnv1-probs"></div>
-                </div>
+            const models = {
+                simplev1: {
+                    path: 'assets/simplev1/model.onnx',
+                    session: null,
+                    // Simple MLP uses 3D input: [batch, height, width]
+                    tensorShape: [1, 28, 28]
+                },
+                cnnv1: {
+                    path: 'assets/cnnv1/model.onnx',
+                    session: null,
+                    // CNN uses 4D input: [batch, channels, height, width]
+                    tensorShape: [1, 1, 28, 28]
+                },
+                cnnv2: {
+                    path: 'assets/cnnv2/model.onnx',
+                    session: null,
+                    // CNN uses 4D input: [batch, channels, height, width]
+                    tensorShape: [1, 1, 28, 28]
+                }
+            };
 
-                <!-- CNN v2 -->
-                <div class="model-card" id="cnnv2-card">
-                    <div class="model-header">
-                        <a class="model-name" href="cnnv2.html">CNN</a>
-                        <span class="model-badge cnn">CNN v2</span>
-                        <span class="model-status loading" id="cnnv2-status">Loading...</span>
-                    </div>
-                    <div class="prediction-row">
-                        <span class="prediction-value" id="cnnv2-prediction">?</span>
-                        <span class="confidence" id="cnnv2-confidence"></span>
-                    </div>
-                    <div class="probabilities" id="cnnv2-probs"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+            // ============================================================
+            // Utility Functions
+            // ============================================================
 
-    <script>
-        // ============================================================
-        // Model Configuration
-        // ============================================================
-
-        const models = {
-            simplev1: {
-                path: 'assets/simplev1/model.onnx',
-                session: null,
-                // Simple MLP uses 3D input: [batch, height, width]
-                tensorShape: [1, 28, 28]
-            },
-            cnnv1: {
-                path: 'assets/cnnv1/model.onnx',
-                session: null,
-                // CNN uses 4D input: [batch, channels, height, width]
-                tensorShape: [1, 1, 28, 28]
-            },
-            cnnv2: {
-                path: 'assets/cnnv2/model.onnx',
-                session: null,
-                // CNN uses 4D input: [batch, channels, height, width]
-                tensorShape: [1, 1, 28, 28]
+            function softmax(x) {
+                const maxVal = Math.max(...x);
+                const exps = x.map(v => Math.exp(v - maxVal));
+                const sum = exps.reduce((a, b) => a + b, 0);
+                return exps.map(v => v / sum);
             }
-        };
 
-        // ============================================================
-        // Utility Functions
-        // ============================================================
+            function updateStatus(modelId, status, text) {
+                const el = document.getElementById(`${modelId}-status`);
+                el.className = `model-status ${status}`;
+                el.textContent = text;
+            }
 
-        function softmax(x) {
-            const maxVal = Math.max(...x);
-            const exps = x.map(v => Math.exp(v - maxVal));
-            const sum = exps.reduce((a, b) => a + b, 0);
-            return exps.map(v => v / sum);
-        }
+            function updateProbabilityBars(containerId, probs) {
+                const container = document.getElementById(containerId);
 
-        function updateStatus(modelId, status, text) {
-            const el = document.getElementById(`${modelId}-status`);
-            el.className = `model-status ${status}`;
-            el.textContent = text;
-        }
+                if (!probs || probs.length === 0) {
+                    container.innerHTML = Array.from({length: 10}, (_, i) => `
+                        <div class="prob-row">
+                            <span class="digit">${i}</span>
+                            <div class="bar-bg"><div class="bar" style="width: 0%"></div></div>
+                            <span class="pct">-</span>
+                        </div>
+                    `).join('');
+                    return;
+                }
 
-        function updateProbabilityBars(containerId, probs) {
-            const container = document.getElementById(containerId);
+                const maxIdx = probs.indexOf(Math.max(...probs));
 
-            if (!probs || probs.length === 0) {
-                container.innerHTML = Array.from({length: 10}, (_, i) => `
+                container.innerHTML = probs.map((p, i) => `
                     <div class="prob-row">
                         <span class="digit">${i}</span>
-                        <div class="bar-bg"><div class="bar" style="width: 0%"></div></div>
-                        <span class="pct">-</span>
+                        <div class="bar-bg"><div class="bar ${i === maxIdx ? 'top' : ''}" style="width: ${(p * 100).toFixed(1)}%"></div></div>
+                        <span class="pct">${(p * 100).toFixed(1)}%</span>
                     </div>
                 `).join('');
-                return;
             }
 
-            const maxIdx = probs.indexOf(Math.max(...probs));
+            // ============================================================
+            // Canvas Drawing
+            // ============================================================
 
-            container.innerHTML = probs.map((p, i) => `
-                <div class="prob-row">
-                    <span class="digit">${i}</span>
-                    <div class="bar-bg"><div class="bar ${i === maxIdx ? 'top' : ''}" style="width: ${(p * 100).toFixed(1)}%"></div></div>
-                    <span class="pct">${(p * 100).toFixed(1)}%</span>
-                </div>
-            `).join('');
-        }
+            const canvas = document.getElementById('drawCanvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-        // ============================================================
-        // Canvas Drawing
-        // ============================================================
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
 
-        const canvas = document.getElementById('drawCanvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            function clearCanvas() {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        let isDrawing = false;
-        let lastX = 0;
-        let lastY = 0;
-
-        function clearCanvas() {
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Reset all predictions
-            for (const modelId of Object.keys(models)) {
-                document.getElementById(`${modelId}-prediction`).textContent = '?';
-                document.getElementById(`${modelId}-confidence`).textContent = '';
-                updateProbabilityBars(`${modelId}-probs`, []);
-            }
-        }
-
-        clearCanvas();
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-
-            if (e.touches) {
-                return {
-                    x: (e.touches[0].clientX - rect.left) * scaleX,
-                    y: (e.touches[0].clientY - rect.top) * scaleY
-                };
-            }
-            return {
-                x: (e.clientX - rect.left) * scaleX,
-                y: (e.clientY - rect.top) * scaleY
-            };
-        }
-
-        function startDrawing(e) {
-            isDrawing = true;
-            const pos = getPos(e);
-            lastX = pos.x;
-            lastY = pos.y;
-            ctx.beginPath();
-            ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, Math.PI * 2);
-            ctx.fillStyle = '#fff';
-            ctx.fill();
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            e.preventDefault();
-
-            const pos = getPos(e);
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-
-            lastX = pos.x;
-            lastY = pos.y;
-        }
-
-        function stopDrawing() {
-            isDrawing = false;
-        }
-
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
-        canvas.addEventListener('touchstart', startDrawing);
-        canvas.addEventListener('touchmove', draw);
-        canvas.addEventListener('touchend', stopDrawing);
-
-        // ============================================================
-        // Image Processing & Inference
-        // ============================================================
-
-        function getImageData() {
-            const imageData = ctx.getImageData(0, 0, 28, 28);
-            const pixels = imageData.data;
-
-            const input = new Float32Array(784);
-            for (let i = 0; i < 784; i++) {
-                input[i] = pixels[i * 4] / 255.0;
-            }
-
-            return input;
-        }
-
-        async function runInference(modelId, inputData) {
-            const model = models[modelId];
-            if (!model.session) return null;
-
-            const tensor = new ort.Tensor('float32', inputData, model.tensorShape);
-            const results = await model.session.run({ image: tensor });
-            return Array.from(results.logits.data);
-        }
-
-        async function recognizeAll() {
-            const input = getImageData();
-
-            // Run inference on all loaded models sequentially
-            // (ONNX Runtime Web has issues with concurrent session access)
-            for (const modelId of Object.keys(models)) {
-                if (!models[modelId].session) continue;
-
-                try {
-                    const logits = await runInference(modelId, input);
-                    if (!logits) continue;
-
-                    const probs = softmax(logits);
-
-                    let maxIdx = 0;
-                    let maxVal = probs[0];
-                    for (let i = 1; i < probs.length; i++) {
-                        if (probs[i] > maxVal) {
-                            maxVal = probs[i];
-                            maxIdx = i;
-                        }
-                    }
-
-                    document.getElementById(`${modelId}-prediction`).textContent = maxIdx;
-                    document.getElementById(`${modelId}-confidence`).textContent =
-                        `Confidence: ${(maxVal * 100).toFixed(1)}%`;
-                    updateProbabilityBars(`${modelId}-probs`, probs);
-                } catch (err) {
-                    console.error(`Inference error for ${modelId}:`, err);
+                // Reset all predictions
+                for (const modelId of Object.keys(models)) {
+                    document.getElementById(`${modelId}-prediction`).textContent = '?';
+                    document.getElementById(`${modelId}-confidence`).textContent = '';
+                    updateProbabilityBars(`${modelId}-probs`, []);
                 }
             }
-        }
 
-        // ============================================================
-        // Initialization
-        // ============================================================
+            clearCanvas();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
 
-        document.getElementById('recognizeBtn').addEventListener('click', recognizeAll);
-        document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
 
-        // Initialize probability bars
-        for (const modelId of Object.keys(models)) {
-            updateProbabilityBars(`${modelId}-probs`, []);
-        }
-
-        // Load all models
-        let loadedCount = 0;
-        const totalModels = Object.keys(models).length;
-
-        function checkAllLoaded() {
-            if (loadedCount === totalModels) {
-                document.getElementById('recognizeBtn').disabled = false;
+                if (e.touches) {
+                    return {
+                        x: (e.touches[0].clientX - rect.left) * scaleX,
+                        y: (e.touches[0].clientY - rect.top) * scaleY
+                    };
+                }
+                return {
+                    x: (e.clientX - rect.left) * scaleX,
+                    y: (e.clientY - rect.top) * scaleY
+                };
             }
-        }
 
-        for (const [modelId, model] of Object.entries(models)) {
-            ort.InferenceSession.create(model.path)
-                .then(session => {
-                    model.session = session;
-                    updateStatus(modelId, 'ready', 'Ready');
-                    loadedCount++;
-                    checkAllLoaded();
-                })
-                .catch(err => {
-                    console.error(`Failed to load ${modelId}:`, err);
-                    updateStatus(modelId, 'error', 'Failed to load');
-                    loadedCount++;
-                    checkAllLoaded();
-                });
-        }
-    </script>
+            function startDrawing(e) {
+                isDrawing = true;
+                const pos = getPos(e);
+                lastX = pos.x;
+                lastY = pos.y;
+                ctx.beginPath();
+                ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+            }
+
+            function draw(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+
+                const pos = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+
+                lastX = pos.x;
+                lastY = pos.y;
+            }
+
+            function stopDrawing() {
+                isDrawing = false;
+            }
+
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('touchend', stopDrawing);
+
+            // ============================================================
+            // Image Processing & Inference
+            // ============================================================
+
+            function getImageData() {
+                const imageData = ctx.getImageData(0, 0, 28, 28);
+                const pixels = imageData.data;
+
+                const input = new Float32Array(784);
+                for (let i = 0; i < 784; i++) {
+                    input[i] = pixels[i * 4] / 255.0;
+                }
+
+                return input;
+            }
+
+            async function runInference(modelId, inputData) {
+                const model = models[modelId];
+                if (!model.session) return null;
+
+                const tensor = new ort.Tensor('float32', inputData, model.tensorShape);
+                const results = await model.session.run({ image: tensor });
+                return Array.from(results.logits.data);
+            }
+
+            async function recognizeAll() {
+                const input = getImageData();
+
+                // Run inference on all loaded models sequentially
+                // (ONNX Runtime Web has issues with concurrent session access)
+                for (const modelId of Object.keys(models)) {
+                    if (!models[modelId].session) continue;
+
+                    try {
+                        const logits = await runInference(modelId, input);
+                        if (!logits) continue;
+
+                        const probs = softmax(logits);
+
+                        let maxIdx = 0;
+                        let maxVal = probs[0];
+                        for (let i = 1; i < probs.length; i++) {
+                            if (probs[i] > maxVal) {
+                                maxVal = probs[i];
+                                maxIdx = i;
+                            }
+                        }
+
+                        document.getElementById(`${modelId}-prediction`).textContent = maxIdx;
+                        document.getElementById(`${modelId}-confidence`).textContent =
+                            `Confidence: ${(maxVal * 100).toFixed(1)}%`;
+                        updateProbabilityBars(`${modelId}-probs`, probs);
+                    } catch (err) {
+                        console.error(`Inference error for ${modelId}:`, err);
+                    }
+                }
+            }
+
+            // ============================================================
+            // Initialization
+            // ============================================================
+
+            document.getElementById('recognizeBtn').addEventListener('click', recognizeAll);
+            document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+
+            // Initialize probability bars
+            for (const modelId of Object.keys(models)) {
+                updateProbabilityBars(`${modelId}-probs`, []);
+            }
+
+            // Load all models
+            let loadedCount = 0;
+            const totalModels = Object.keys(models).length;
+
+            function checkAllLoaded() {
+                if (loadedCount === totalModels) {
+                    document.getElementById('recognizeBtn').disabled = false;
+                }
+            }
+
+            for (const [modelId, model] of Object.entries(models)) {
+                ort.InferenceSession.create(model.path)
+                    .then(session => {
+                        model.session = session;
+                        updateStatus(modelId, 'ready', 'Ready');
+                        loadedCount++;
+                        checkAllLoaded();
+                    })
+                    .catch(err => {
+                        console.error(`Failed to load ${modelId}:`, err);
+                        updateStatus(modelId, 'error', 'Failed to load');
+                        loadedCount++;
+                        checkAllLoaded();
+                    });
+            }
+        </script>
+    </div>
 </body>
 </html>
-
