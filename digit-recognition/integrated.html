@@ -5,11 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digit Recognition - Model Comparison</title>
     <style>
+        :root {
+            --bg: #fafafa;
+            --fg: #1a1a1a;
+            --muted: #666;
+            --border: #ccc;
+            --card-bg: #fff;
+            --bar-bg: #eee;
+            --bar-fill: #666;
+            --bar-top: #000;
+            --badge-simple-bg: #fff3e0;
+            --badge-simple-border: #ffb74d;
+            --badge-cnn-bg: #e3f2fd;
+            --badge-cnn-border: #90caf9;
+            --canvas-border: #000;
+            --status-loading: #f57c00;
+            --status-ready: #388e3c;
+            --status-error: #d32f2f;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0a0a0a;
+                --fg: #e8e8e8;
+                --muted: #888;
+                --border: #333;
+                --card-bg: #111;
+                --bar-bg: #333;
+                --bar-fill: #888;
+                --bar-top: #fff;
+                --badge-simple-bg: #3d2a0f;
+                --badge-simple-border: #b8860b;
+                --badge-cnn-bg: #1a3a5c;
+                --badge-cnn-border: #4a7ab0;
+                --canvas-border: #444;
+                --status-loading: #ffb74d;
+                --status-ready: #66bb6a;
+                --status-error: #ef5350;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: monospace;
+            font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
             max-width: 900px;
             margin: 2rem auto;
             padding: 1rem;
+            background: var(--bg);
+            color: var(--fg);
         }
 
         h1 {
@@ -17,7 +63,7 @@
         }
 
         .subtitle {
-            color: #666;
+            color: var(--muted);
             margin-bottom: 1.5rem;
         }
 
@@ -32,7 +78,7 @@
         }
 
         #drawCanvas {
-            border: 1px solid #000;
+            border: 1px solid var(--canvas-border);
             cursor: crosshair;
             image-rendering: pixelated;
             width: 280px;
@@ -41,7 +87,7 @@
 
         .canvas-label {
             font-size: 0.75rem;
-            color: #666;
+            color: var(--muted);
         }
 
         .buttons {
@@ -51,7 +97,7 @@
         .model-links {
             margin-top: 1rem;
             font-size: 0.8rem;
-            color: #666;
+            color: var(--muted);
         }
 
         .model-links p {
@@ -64,13 +110,24 @@
         }
 
         .model-links a {
-            color: #666;
+            color: var(--muted);
+        }
+
+        .model-links a:hover {
+            color: var(--fg);
         }
 
         button {
-            font-family: monospace;
+            font-family: inherit;
             padding: 0.5rem 1rem;
             cursor: pointer;
+            background: var(--card-bg);
+            color: var(--fg);
+            border: 1px solid var(--border);
+        }
+
+        button:hover {
+            border-color: var(--fg);
         }
 
         button:disabled {
@@ -90,8 +147,9 @@
         }
 
         .model-card {
-            border: 1px solid #ccc;
+            border: 1px solid var(--border);
             padding: 1rem;
+            background: var(--card-bg);
         }
 
         .model-header {
@@ -119,30 +177,30 @@
         }
 
         .model-badge.simple {
-            background: #fff3e0;
-            border-color: #ffb74d;
+            background: var(--badge-simple-bg);
+            border-color: var(--badge-simple-border);
         }
 
         .model-badge.cnn {
-            background: #e3f2fd;
-            border-color: #90caf9;
+            background: var(--badge-cnn-bg);
+            border-color: var(--badge-cnn-border);
         }
 
         .model-status {
             font-size: 0.75rem;
-            color: #666;
+            color: var(--muted);
         }
 
         .model-status.loading {
-            color: #f57c00;
+            color: var(--status-loading);
         }
 
         .model-status.ready {
-            color: #388e3c;
+            color: var(--status-ready);
         }
 
         .model-status.error {
-            color: #d32f2f;
+            color: var(--status-error);
         }
 
         .prediction-row {
@@ -161,7 +219,7 @@
 
         .confidence {
             font-size: 0.875rem;
-            color: #666;
+            color: var(--muted);
         }
 
         .probabilities {
@@ -183,16 +241,16 @@
         .prob-row .bar-bg {
             flex: 1;
             height: 0.6rem;
-            background: #eee;
+            background: var(--bar-bg);
         }
 
         .prob-row .bar {
             height: 100%;
-            background: #666;
+            background: var(--bar-fill);
         }
 
         .prob-row .bar.top {
-            background: #000;
+            background: var(--bar-top);
         }
 
         .prob-row .pct {
@@ -203,12 +261,29 @@
         .loading-indicator {
             text-align: center;
             padding: 2rem;
-            color: #666;
+            color: var(--muted);
+        }
+
+        .nav-link {
+            display: inline-block;
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .nav-link:hover {
+            color: var(--fg);
+        }
+
+        .nav-link::before {
+            content: '← ';
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 </head>
 <body>
+    <a href="./" class="nav-link">Back to main page</a>
     <h1>Digit Recognition</h1>
     <p class="subtitle">Compare predictions across multiple models</p>
 

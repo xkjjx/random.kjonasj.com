@@ -5,15 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digit Recognition</title>
     <style>
+        :root {
+            --bg: #fafafa;
+            --fg: #1a1a1a;
+            --muted: #666;
+            --border: #ccc;
+            --card-bg: #fff;
+            --bar-bg: #eee;
+            --bar-fill: #666;
+            --bar-top: #000;
+            --badge-bg: #e3f2fd;
+            --badge-border: #90caf9;
+            --canvas-border: #000;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0a0a0a;
+                --fg: #e8e8e8;
+                --muted: #888;
+                --border: #333;
+                --card-bg: #111;
+                --bar-bg: #333;
+                --bar-fill: #888;
+                --bar-top: #fff;
+                --badge-bg: #1a3a5c;
+                --badge-border: #4a7ab0;
+                --canvas-border: #444;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: monospace;
+            font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
             max-width: 600px;
             margin: 2rem auto;
             padding: 1rem;
+            background: var(--bg);
+            color: var(--fg);
+        }
+
+        a {
+            color: var(--fg);
         }
 
         #drawCanvas {
-            border: 1px solid #000;
+            border: 1px solid var(--canvas-border);
             cursor: crosshair;
             image-rendering: pixelated;
             width: 280px;
@@ -25,12 +65,19 @@
         }
 
         button {
-            font-family: monospace;
+            font-family: inherit;
             padding: 0.5rem 1rem;
             cursor: pointer;
+            background: var(--card-bg);
+            color: var(--fg);
+            border: 1px solid var(--border);
         }
 
-        #recognizeBtn:disabled {
+        button:hover {
+            border-color: var(--fg);
+        }
+
+        button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
@@ -38,7 +85,8 @@
         .result {
             margin: 1.5rem 0;
             padding: 1rem;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
         }
 
         .prediction-value {
@@ -65,16 +113,16 @@
         .prob-row .bar-bg {
             flex: 1;
             height: 0.75rem;
-            background: #eee;
+            background: var(--bar-bg);
         }
 
         .prob-row .bar {
             height: 100%;
-            background: #666;
+            background: var(--bar-fill);
         }
 
         .prob-row .bar.top {
-            background: #000;
+            background: var(--bar-top);
         }
 
         .prob-row .pct {
@@ -84,22 +132,52 @@
 
         .model-badge {
             display: inline-block;
-            background: #e3f2fd;
-            border: 1px solid #90caf9;
+            background: var(--badge-bg);
+            border: 1px solid var(--badge-border);
             padding: 0.2rem 0.5rem;
             font-size: 0.75rem;
             margin-left: 0.5rem;
+        }
+
+        .canvas-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        h2 {
+            margin-top: 2rem;
+        }
+
+        p {
+            line-height: 1.6;
+        }
+
+        .nav-link {
+            display: inline-block;
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .nav-link:hover {
+            color: var(--fg);
+        }
+
+        .nav-link::before {
+            content: '← ';
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 </head>
 <body>
+    <a href="./" class="nav-link">Back to main page</a>
     <h1>CNN Digit Recognition <span class="model-badge">CNN v2</span></h1>
     <p>Draw a digit (0-9) and click "Recognize".</p>
 
     <div>
         <canvas id="drawCanvas" width="28" height="28"></canvas>
-        <div style="font-size: 0.75rem; color: #666;">28×28 pixels (scaled 10× for display)</div>
+        <div class="canvas-label">28×28 pixels (scaled 10× for display)</div>
     </div>
 
     <div class="buttons">

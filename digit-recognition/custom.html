@@ -5,11 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digit Recognition - Custom Model Tester</title>
     <style>
+        :root {
+            --bg: #fafafa;
+            --fg: #1a1a1a;
+            --muted: #666;
+            --border: #ccc;
+            --card-bg: #fff;
+            --bar-bg: #eee;
+            --bar-fill: #666;
+            --bar-top: #000;
+            --upload-bg: #f9f9f9;
+            --instructions-bg: #f0f0f0;
+            --code-bg: #fff;
+            --error-bg: #ffebee;
+            --error-border: #ef5350;
+            --error-text: #c62828;
+            --canvas-border: #000;
+            --status-loading: #f57c00;
+            --status-ready: #388e3c;
+            --status-error: #d32f2f;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0a0a0a;
+                --fg: #e8e8e8;
+                --muted: #888;
+                --border: #333;
+                --card-bg: #111;
+                --bar-bg: #333;
+                --bar-fill: #888;
+                --bar-top: #fff;
+                --upload-bg: #161616;
+                --instructions-bg: #1a1a1a;
+                --code-bg: #222;
+                --error-bg: #2d1a1a;
+                --error-border: #b71c1c;
+                --error-text: #ef9a9a;
+                --canvas-border: #444;
+                --status-loading: #ffb74d;
+                --status-ready: #66bb6a;
+                --status-error: #ef5350;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: monospace;
+            font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
             max-width: 900px;
             margin: 2rem auto;
             padding: 1rem;
+            background: var(--bg);
+            color: var(--fg);
         }
 
         h1 {
@@ -17,15 +67,15 @@
         }
 
         .subtitle {
-            color: #666;
+            color: var(--muted);
             margin-bottom: 1.5rem;
         }
 
         .upload-section {
-            border: 2px dashed #ccc;
+            border: 2px dashed var(--border);
             padding: 1.5rem;
             margin-bottom: 2rem;
-            background: #f9f9f9;
+            background: var(--upload-bg);
         }
 
         .upload-section h2 {
@@ -46,25 +96,26 @@
         }
 
         input[type="file"] {
-            font-family: monospace;
+            font-family: inherit;
             font-size: 0.9rem;
+            color: var(--fg);
         }
 
         .model-info {
             font-size: 0.85rem;
-            color: #666;
+            color: var(--muted);
             margin-top: 0.5rem;
             line-height: 1.6;
         }
 
         .model-info strong {
-            color: #333;
+            color: var(--fg);
         }
 
         .error-message {
-            background: #ffebee;
-            border: 1px solid #ef5350;
-            color: #c62828;
+            background: var(--error-bg);
+            border: 1px solid var(--error-border);
+            color: var(--error-text);
             padding: 1rem;
             margin-top: 1rem;
             font-size: 0.85rem;
@@ -82,7 +133,7 @@
         }
 
         #drawCanvas {
-            border: 1px solid #000;
+            border: 1px solid var(--canvas-border);
             cursor: crosshair;
             image-rendering: pixelated;
             width: 280px;
@@ -91,7 +142,7 @@
 
         .canvas-label {
             font-size: 0.75rem;
-            color: #666;
+            color: var(--muted);
         }
 
         .buttons {
@@ -99,9 +150,16 @@
         }
 
         button {
-            font-family: monospace;
+            font-family: inherit;
             padding: 0.5rem 1rem;
             cursor: pointer;
+            background: var(--card-bg);
+            color: var(--fg);
+            border: 1px solid var(--border);
+        }
+
+        button:hover {
+            border-color: var(--fg);
         }
 
         button:disabled {
@@ -115,26 +173,27 @@
         }
 
         .model-card {
-            border: 1px solid #ccc;
+            border: 1px solid var(--border);
             padding: 1rem;
+            background: var(--card-bg);
         }
 
         .model-status {
             font-size: 0.875rem;
-            color: #666;
+            color: var(--muted);
             margin-bottom: 1rem;
         }
 
         .model-status.loading {
-            color: #f57c00;
+            color: var(--status-loading);
         }
 
         .model-status.ready {
-            color: #388e3c;
+            color: var(--status-ready);
         }
 
         .model-status.error {
-            color: #d32f2f;
+            color: var(--status-error);
         }
 
         .prediction-row {
@@ -153,7 +212,7 @@
 
         .confidence {
             font-size: 1rem;
-            color: #666;
+            color: var(--muted);
         }
 
         .probabilities {
@@ -175,17 +234,17 @@
         .prob-row .bar-bg {
             flex: 1;
             height: 0.7rem;
-            background: #eee;
+            background: var(--bar-bg);
         }
 
         .prob-row .bar {
             height: 100%;
-            background: #666;
+            background: var(--bar-fill);
             transition: width 0.3s ease;
         }
 
         .prob-row .bar.top {
-            background: #000;
+            background: var(--bar-top);
         }
 
         .prob-row .pct {
@@ -194,7 +253,7 @@
         }
 
         .instructions {
-            background: #f0f0f0;
+            background: var(--instructions-bg);
             padding: 1rem;
             margin-bottom: 1.5rem;
             font-size: 0.85rem;
@@ -212,14 +271,31 @@
         }
 
         .instructions code {
-            background: #fff;
+            background: var(--code-bg);
             padding: 0.1rem 0.3rem;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border);
+        }
+
+        .nav-link {
+            display: inline-block;
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .nav-link:hover {
+            color: var(--fg);
+        }
+
+        .nav-link::before {
+            content: '← ';
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 </head>
 <body>
+    <a href="./" class="nav-link">Back to main page</a>
     <h1>Custom Model Tester</h1>
     <p class="subtitle">Upload your own ONNX model and test it on handwritten digits</p>
 
