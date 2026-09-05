@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Lab is a private Gmail integration for Kevin Jonas Johnson's personal email accounts. Learn about its purpose, data use, and terms.">
+    <title>Lab — Gmail integration</title>
+    <style>
+      :root { color-scheme: light; font-family: system-ui, sans-serif; color: #182535; background: #f5f7fa; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-size: 1rem; line-height: 1.7; }
+      main { max-width: 52rem; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+      header { padding-bottom: 2rem; border-bottom: 2px solid #153e75; }
+      h1 { font-size: clamp(2.25rem, 6vw, 3.5rem); line-height: 1.12; margin: .5rem 0 1rem; letter-spacing: -.035em; }
+      h2 { line-height: 1.25; margin: 0 0 1.25rem; font-size: 1.8rem; }
+      h3 { line-height: 1.35; margin: 1.5rem 0 .4rem; font-size: 1.1rem; }
+      p { margin: .65rem 0; }
+      a { color: #124f91; text-underline-offset: .2em; }
+      a:focus-visible { outline: 3px solid #124f91; outline-offset: 4px; }
+      nav { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; margin-top: 1.5rem; }
+      section { padding: 2rem 0; border-bottom: 1px solid #cbd5e1; scroll-margin-top: 1.5rem; }
+      .eyebrow { font-size: .875rem; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: #334d69; }
+      .updated, footer { color: #4a5869; font-size: .9rem; }
+      footer { padding-top: 1.5rem; }
+      code { overflow-wrap: anywhere; font-size: .9em; }
+      li + li { margin-top: .5rem; }
+      @media (prefers-color-scheme: dark) {
+        :root { color-scheme: dark; color: #e2e8f0; background: #111b28; }
+        a { color: #91c6ff; }
+        a:focus-visible { outline-color: #91c6ff; }
+        .eyebrow, .updated, footer { color: #b3c2d4; }
+        section { border-color: #34465e; }
+        header { border-color: #91c6ff; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">Personal software by Kevin Jonas Johnson</p>
+        <h1>Lab</h1>
+        <p>A private integration for managing the operator's personal Gmail accounts through authorized, programmatic workflows.</p>
+        <nav aria-label="Page sections">
+          <a href="#about">About the app</a>
+          <a href="#privacy">Privacy policy</a>
+          <a href="#terms">Terms of use</a>
+          <a href="#contact">Contact</a>
+        </nav>
+      </header>
+
+      <section id="about" aria-labelledby="about-title">
+        <h2 id="about-title">About the app</h2>
+        <p>Lab is being developed for Kevin Jonas Johnson's own accounts. Its Gmail integration supports reading messages and attachments, organizing messages and labels, and composing and sending email through workflows the operator enables. It is not offered as a public email service.</p>
+        <p>Each account authorizes access directly with Google. The requested Gmail permission, <code>https://www.googleapis.com/auth/gmail.modify</code>, allows reading, composing, sending, and organizing email, including moving messages to Trash. It does not allow immediate permanent deletion that bypasses Trash.</p>
+        <p>The current setup verifies the connected account and stores authorization credentials for subsequent use. It does not read message contents or send email during account connection. This public page provides app information only; account connection happens through a separate local setup process.</p>
+      </section>
+
+      <section id="privacy" aria-labelledby="privacy-title">
+        <h2 id="privacy-title">Privacy policy</h2>
+        <p class="updated">Last updated: September 5, 2026</p>
+        <h3>Who operates the app</h3>
+        <p>Kevin Jonas Johnson operates Lab for personal use with accounts he controls.</p>
+        <h3>Information accessed</h3>
+        <p>During connection, the app receives Google OAuth credentials and checks the Gmail account's email address using the Gmail profile endpoint. Google may also return mailbox counts with that profile response. The setup process uses the address to verify the intended account and does not retain those counts.</p>
+        <p>The granted permission allows future operator-enabled workflows to access email addresses, message headers, message bodies, attachments, labels, drafts, and other Gmail data needed to read, organize, or send email. Granting this permission does not by itself start those workflows.</p>
+        <h3>How information is used and shared</h3>
+        <p>Google user data is used to connect the selected accounts and carry out the operator's enabled email-management workflows. Authorization requests and Gmail operations are sent to Google. OAuth credentials are stored in the operator's Amazon Web Services account using encrypted SSM Parameter Store SecureString parameters, with access controlled through AWS IAM.</p>
+        <p>The current integration does not sell Google user data, use it for advertising, or use it to train generalized artificial intelligence or machine-learning models. It does not send email contents to third-party AI services. Email sent through an enabled workflow is delivered to the recipients selected by the operator.</p>
+        <p>Lab's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+        <h3>Storage and retention</h3>
+        <p>OAuth credentials remain in the operator's AWS account until the operator removes or replaces them. A downloaded OAuth client configuration may also be retained in a restricted local folder outside source control. Credentials and authorization codes are not intentionally written to application logs or published on this site.</p>
+        <p>The current account-connection process does not persist email messages or attachments. Any future workflow that introduces additional storage or data sharing must be reflected in this policy before that use begins.</p>
+        <h3>Revoking access and deleting stored credentials</h3>
+        <p>The account owner can revoke Lab access through <a href="https://myaccount.google.com/connections">Google Account connections</a>. Revocation prevents further authorized access but does not automatically delete copies of credentials held in AWS or local files. The operator can remove the corresponding SSM parameters and local credential files to delete those copies. Disconnecting the app does not reverse email changes already made through it.</p>
+        <h3>This public website</h3>
+        <p>This information page has no sign-in form, analytics scripts, or Gmail connection functionality, and does not receive Gmail credentials or mailbox data. GitHub Pages hosts the page and may process ordinary request information, such as IP addresses, under <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>.</p>
+        <h3>Changes and questions</h3>
+        <p>This policy will be updated when the integration's data practices change. Privacy questions can be directed to the operator using the <a href="#contact">contact information below</a>.</p>
+      </section>
+
+      <section id="terms" aria-labelledby="terms-title">
+        <h2 id="terms-title">Terms of use</h2>
+        <p class="updated">Last updated: September 5, 2026</p>
+        <p>Lab is personal software for the operator's own Google accounts. There is no public registration, subscription, or paid service available through this page.</p>
+        <p>Use is limited to accounts and actions the operator is authorized to manage, and remains subject to Google's applicable terms and API policies. The operator is responsible for reviewing and enabling workflows and for their effects, including changes to messages and email sent to recipients.</p>
+        <p>The software is under development and provided as available, without a promise of continuous availability or error-free operation. Google may expire or revoke access, and reconnection may be required. The operator may discontinue use and revoke access at any time.</p>
+      </section>
+
+      <section id="contact" aria-labelledby="contact-title">
+        <h2 id="contact-title">Contact</h2>
+        <p>Operator: <a href="https://github.com/xkjjx">Kevin Jonas Johnson (@xkjjx)</a>.</p>
+        <p>General questions about the app or this policy can be raised in the <a href="https://github.com/xkjjx/random.kjonasj.com/issues">website repository</a>. Repository issues are public; use them without including private email contents or credentials.</p>
+      </section>
+      <footer><a href="/">Kevin Jonas Johnson's Random Stuff</a></footer>
+    </main>
+  </body>
+</html>
